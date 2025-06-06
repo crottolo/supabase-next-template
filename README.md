@@ -73,8 +73,17 @@ src/
 │   └── ui/                # shadcn/ui components
 ├── lib/
 │   └── supabase/          # Supabase client configuration
-└── middleware.ts          # Route protection middleware
+├── middleware.ts          # Route protection middleware
+└── nixpacks.toml          # Coolify/Nixpacks configuration
 ```
+
+## ⚙️ Nixpacks Configuration
+
+The `nixpacks.toml` file preconfigures environment variables for Coolify deployment:
+
+- **Automatic Detection**: Coolify automatically reads this file and shows the variables in the UI
+- **Production Ready**: Variables are optimized for production deployment
+- **Easy Setup**: Users only need to fill in their Supabase credentials
 
 ## 🔐 Authentication Flow
 
@@ -127,17 +136,23 @@ The Supabase client is configured in `src/lib/supabase/`. You can extend it with
    curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
    ```
 
-2. **Create a new Docker Compose resource** in Coolify dashboard
+2. **Create a new application** in Coolify dashboard
 
 3. **Configure the deployment**:
-   - Choose your Git repository
-   - Select **Docker Compose** as build pack
-   - Set Docker Compose location: `docker-compose.yml`
+   - Choose your Git repository (Public Repository or Private with GitHub App)
+   - Coolify will automatically detect Next.js and use **Nixpacks**
+   - Set the **Port** to `3000` (Next.js default)
+   - Leave **Base Directory** as `/` if your app is in the root
 
-4. **Set environment variables** in Coolify UI:
-   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
-   - Coolify will automatically handle `SERVICE_FQDN_APP` and `SERVICE_URL_APP`
+4. **Configure environment variables** in Coolify UI:
+   - Coolify will automatically detect and show the preconfigured variables from `nixpacks.toml`
+   - Replace the placeholder values with your actual Supabase credentials:
+     - `NEXT_PUBLIC_SUPABASE_URL` - Replace with your Supabase project URL
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Replace with your Supabase anon key
+   - Other variables are already optimized for production:
+     - `NODE_ENV` - Set to "production"
+     - `PORT` - Set to "3000"
+     - `NEXT_TELEMETRY_DISABLED` - Set to "1"
 
 5. **Deploy** and enjoy your self-hosted application!
 
@@ -158,22 +173,10 @@ This template works with any platform that supports Next.js:
 
 ## 📝 Environment Variables
 
-### Required Variables
-
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key | ✅ |
-
-### Coolify Magic Variables (Auto-Generated)
-
-When deploying with Coolify, these variables are automatically generated:
-
-| Variable | Description | Auto-Generated |
-|----------|-------------|----------------|
-| `SERVICE_FQDN_APP` | Fully qualified domain name for your app | ✅ |
-| `SERVICE_URL_APP` | Complete URL for your application | ✅ |
-| `NODE_ENV` | Environment mode (production/development) | ✅ |
 
 ## 🤝 Contributing
 

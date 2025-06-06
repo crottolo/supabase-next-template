@@ -1,0 +1,33 @@
+[variables]
+# Next.js Configuration
+NODE_ENV = "production"
+PORT = "3000"
+
+# Supabase Configuration (these will appear in Coolify UI for configuration)
+NEXT_PUBLIC_SUPABASE_URL = "https://your-project-ref.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "your-supabase-anon-key"
+
+# Build optimizations
+NEXT_TELEMETRY_DISABLED = "1"
+
+# Package manager configuration
+NIXPACKS_BUILD_CMD = "pnpm run build"
+NIXPACKS_INSTALL_CMD = "pnpm install --frozen-lockfile"
+NIXPACKS_START_CMD = "pnpm start"
+
+[phases.setup]
+# Enable pnpm
+aptPkgs = []
+nixPkgs = ["nodejs", "pnpm"]
+
+[phases.install]
+# Use pnpm for installation
+cmd = "pnpm install --frozen-lockfile"
+
+[phases.build]
+# Use pnpm for build
+cmd = "pnpm run build"
+
+[phases.start]
+# Use pnpm for start
+cmd = "pnpm start" 
