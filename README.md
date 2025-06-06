@@ -77,13 +77,45 @@ src/
 └── nixpacks.toml          # Coolify/Nixpacks configuration
 ```
 
-## ⚙️ Nixpacks Configuration
+## ⚙️ Environment Variables Template
 
-The `nixpacks.toml` file preconfigures environment variables for Coolify deployment:
+The `.env.example` file provides a template with all necessary environment variables:
 
-- **Automatic Detection**: Coolify automatically reads this file and shows the variables in the UI
-- **Production Ready**: Variables are optimized for production deployment
-- **Easy Setup**: Users only need to fill in their Supabase credentials
+- **Clear Documentation**: Each variable has instructions on where to find the values
+- **Supabase Integration**: Step-by-step guide to get Supabase credentials  
+- **Production Ready**: All variables optimized for production deployment
+- **Coolify Magic Variables**: Predefined variables that Coolify generates automatically
+
+### 🔄 Using Shared Variables (Advanced)
+
+For teams managing multiple projects, Coolify's Shared Variables feature allows you to:
+
+1. **Team Level** - Set variables once, use across all projects:
+   ```bash
+   # In Coolify: Team Settings
+   SUPABASE_URL = https://company-project.supabase.co
+   
+   # In applications, use:
+   NEXT_PUBLIC_SUPABASE_URL = {{team.SUPABASE_URL}}
+   ```
+
+2. **Project Level** - Share variables within a project:
+   ```bash
+   # In Coolify: Project Settings  
+   DATABASE_URL = {{team.SUPABASE_URL}}
+   
+   # In applications, use:
+   NEXT_PUBLIC_SUPABASE_URL = {{project.DATABASE_URL}}
+   ```
+
+3. **Environment Level** - Different values per environment:
+   ```bash
+   # In Coolify: Environment Settings
+   # Production: DOMAIN = https://myapp.com
+   # Staging: DOMAIN = https://staging.myapp.com
+   
+   NEXTAUTH_URL = {{environment.DOMAIN}}
+   ```
 
 ## 🔐 Authentication Flow
 
@@ -145,14 +177,19 @@ The Supabase client is configured in `src/lib/supabase/`. You can extend it with
    - Leave **Base Directory** as `/` if your app is in the root
 
 4. **Configure environment variables** in Coolify UI:
-   - Coolify will automatically detect and show the preconfigured variables from `nixpacks.toml`
-   - Replace the placeholder values with your actual Supabase credentials:
-     - `NEXT_PUBLIC_SUPABASE_URL` - Replace with your Supabase project URL
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Replace with your Supabase anon key
-   - Other variables are already optimized for production:
+   - Go to the **Environment Variables** tab in your application
+   - Reference the `.env.example` file for all required variables
+   - Add the following required variables:
+     - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
      - `NODE_ENV` - Set to "production"
-     - `PORT` - Set to "3000"
+     - `PORT` - Set to "3000" 
      - `NEXT_TELEMETRY_DISABLED` - Set to "1"
+   
+   **💡 Pro Tip**: Use Coolify's **Shared Variables** feature to reuse environment variables across multiple projects:
+   - **Team Variables**: `{{team.VARIABLE_NAME}}` - Shared across all team projects
+   - **Project Variables**: `{{project.VARIABLE_NAME}}` - Shared within a project
+   - **Environment Variables**: `{{environment.VARIABLE_NAME}}` - Per environment (staging/production)
 
 5. **Deploy** and enjoy your self-hosted application!
 
