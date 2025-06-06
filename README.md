@@ -159,54 +159,77 @@ The Supabase client is configured in `src/lib/supabase/`. You can extend it with
 - [shadcn/ui](https://ui.shadcn.com/) - UI components
 - [Lucide React](https://lucide.dev/) - Icons
 
-## 🚀 Deployment
+## 🚀 Deploy with Coolify
 
-### Coolify (Self-hosted, Recommended)
+### Quick Deploy Guide
 
-1. **Setup Coolify on your VPS**:
+1. **Setup Coolify** (if you haven't already):
    ```bash
    curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
    ```
 
-2. **Create a new application** in Coolify dashboard
+2. **Create New Application** in Coolify Dashboard:
+   - Click **"+ New Resource"** → **"Application"**
+   - Choose **"Public Repository"** or **"GitHub App"** (for private repos)
+   - Paste repository URL: `https://github.com/crottolo/supabase-next-template`
 
-3. **Configure the deployment**:
-   - Choose your Git repository (Public Repository or Private with GitHub App)
-   - Coolify will automatically detect Next.js and use **Nixpacks**
-   - Set the **Port** to `3000` (Next.js default)
-   - Leave **Base Directory** as `/` if your app is in the root
+3. **Configure Build Settings**:
+   - **Build Pack**: Nixpacks (auto-detected)
+   - **Base Directory**: `/` (root)
+   - **Port**: `3000`
+   - **Branch**: `main`
 
-4. **Configure environment variables** in Coolify UI:
-   - Go to the **Environment Variables** tab in your application
-   - Reference the `.env.example` file for all required variables
-   - Add the following required variables:
-     - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
-     - `NODE_ENV` - Set to "production"
-     - `PORT` - Set to "3000" 
-     - `NEXT_TELEMETRY_DISABLED` - Set to "1"
+4. **Environment Variables** (Copy-Paste Ready!):
    
-   **💡 Pro Tip**: Use Coolify's **Shared Variables** feature to reuse environment variables across multiple projects:
-   - **Team Variables**: `{{team.VARIABLE_NAME}}` - Shared across all team projects
-   - **Project Variables**: `{{project.VARIABLE_NAME}}` - Shared within a project
-   - **Environment Variables**: `{{environment.VARIABLE_NAME}}` - Per environment (staging/production)
+   Open the **Environment Variables** tab and paste:
+   
+   ```bash
+   # For projects with Shared Variables (recommended)
+   NEXT_PUBLIC_SUPABASE_URL={{project.NEXT_PUBLIC_SUPABASE_URL}}
+   NEXT_PUBLIC_SUPABASE_ANON_KEY={{project.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
+   NODE_ENV={{project.NODE_ENV}}
+   PORT=3000
+   NEXT_TELEMETRY_DISABLED=1
+   ```
+   
+   **Alternative** (direct values):
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   NODE_ENV=production
+   PORT=3000
+   NEXT_TELEMETRY_DISABLED=1
+   ```
 
-5. **Deploy** and enjoy your self-hosted application!
+5. **Deploy**: Click **"Deploy"** and your app will be live in minutes! 🎉
 
-### Vercel
+### 🔄 Using Shared Variables (Pro Tip)
 
-1. Push your code to GitHub
-2. Connect your repository to [Vercel](https://vercel.com)
-3. Add your environment variables in Vercel dashboard
-4. Deploy!
+For teams or multiple projects, set up **Shared Variables** once:
 
-### Other Platforms
+1. **Project Level**: Go to Project Settings → Variables
+2. **Add these variables**:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` 
+   - `NODE_ENV`
+3. **Reference with**: `{{project.VARIABLE_NAME}}`
 
-This template works with any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
+Now every new app in this project uses the same configuration automatically!
+
+### 🌐 Get Your Supabase Credentials
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Settings** → **API**
+4. Copy **Project URL** and **anon public key**
+
+### ✨ Why Coolify?
+
+- **Self-hosted**: Full control of your infrastructure
+- **Cost-effective**: No vendor lock-in, use your own VPS
+- **Easy scaling**: Add more servers as you grow
+- **Privacy**: Your data stays on your servers
+- **Open source**: Transparent and community-driven
 
 ## 📝 Environment Variables
 
