@@ -120,7 +120,28 @@ The Supabase client is configured in `src/lib/supabase/`. You can extend it with
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Coolify (Self-hosted, Recommended)
+
+1. **Setup Coolify on your VPS**:
+   ```bash
+   curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
+   ```
+
+2. **Create a new Docker Compose resource** in Coolify dashboard
+
+3. **Configure the deployment**:
+   - Choose your Git repository
+   - Select **Docker Compose** as build pack
+   - Set Docker Compose location: `docker-compose.yml`
+
+4. **Set environment variables** in Coolify UI:
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
+   - Coolify will automatically handle `SERVICE_FQDN_APP` and `SERVICE_URL_APP`
+
+5. **Deploy** and enjoy your self-hosted application!
+
+### Vercel
 
 1. Push your code to GitHub
 2. Connect your repository to [Vercel](https://vercel.com)
@@ -137,10 +158,22 @@ This template works with any platform that supports Next.js:
 
 ## 📝 Environment Variables
 
+### Required Variables
+
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key | ✅ |
+
+### Coolify Magic Variables (Auto-Generated)
+
+When deploying with Coolify, these variables are automatically generated:
+
+| Variable | Description | Auto-Generated |
+|----------|-------------|----------------|
+| `SERVICE_FQDN_APP` | Fully qualified domain name for your app | ✅ |
+| `SERVICE_URL_APP` | Complete URL for your application | ✅ |
+| `NODE_ENV` | Environment mode (production/development) | ✅ |
 
 ## 🤝 Contributing
 

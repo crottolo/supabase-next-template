@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  supabase-next-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Variabili per Next.js
+      - NODE_ENV=production
+      
+      # Supabase Configuration - queste verranno gestite da Coolify UI
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      
+      # Coolify Magic Variables per dominio
+      - SERVICE_FQDN_APP=${SERVICE_FQDN_APP}
+      - NEXTAUTH_URL=${SERVICE_URL_APP}
+      
+      # Port configuration
+      - PORT=3000
+      - HOST=0.0.0.0
+      
+    # Coolify gestisce automaticamente i port, non servono le dichiarazioni ports:
+    expose:
+      - "3000"
+    
+    # Health check per verificare che l'app sia pronta
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Restart policy
+    restart: unless-stopped 
