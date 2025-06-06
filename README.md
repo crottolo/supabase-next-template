@@ -1,139 +1,167 @@
-# Supabase + Next.js Authentication Flow
+# Supabase Next.js Template
 
-Un progetto completo che implementa un flusso di autenticazione usando **Supabase** e **Next.js 15** con **App Router**.
+A modern, full-stack template for building web applications with **Next.js 15**, **Supabase**, and **TypeScript**. Features authentication, dashboard, and a beautiful UI built with Tailwind CSS and shadcn/ui components.
 
-## 🚀 Caratteristiche
+## ✨ Features
 
-- ✅ **Next.js 15** con App Router e TypeScript
-- ✅ **Supabase Authentication** con SSR support  
-- ✅ **Shadcn/ui** per i componenti UI
-- ✅ **Tailwind CSS** per lo styling
-- ✅ Pagine di **Login** e **Registrazione**
-- ✅ **Dashboard privata** protetta da autenticazione
-- ✅ **Middleware** per la protezione delle route
-- ✅ Gestione completa delle **sessioni**
+- ⚡ **Next.js 15** with App Router and Server Components
+- 🔐 **Supabase Authentication** (Email/Password, OAuth providers)
+- 📊 **Dashboard** with protected routes
+- 🎨 **Modern UI** with Tailwind CSS and shadcn/ui
+- 🔧 **TypeScript** for type safety
+- 📱 **Responsive Design** 
+- 🛡️ **Middleware Protection** for authenticated routes
+- 🎯 **User Registration & Login** flows
+- ⚙️ **Account Setup** pages
+- 🌙 **Dark Mode Support** (via shadcn/ui)
 
-## 📋 Prerequisiti
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Node.js 18+ 
-- pnpm (raccomandato)
-- Account Supabase
+- pnpm (recommended) or npm
+- A Supabase account
 
-## 🛠️ Installazione
+### 1. Clone and Install
 
-1. **Clona il progetto** (se non l'hai già fatto):
 ```bash
-cd supabase-next
-```
-
-2. **Installa le dipendenze**:
-```bash
+git clone https://github.com/crottolo/supabase-next-template.git
+cd supabase-next-template
 pnpm install
 ```
 
-3. **Configura Supabase**:
-   - Vai su [supabase.com](https://supabase.com) e crea un nuovo progetto
-   - Nella dashboard del progetto, vai su **Settings** > **API**
-   - Copia l'URL del progetto e la chiave anonima
+### 2. Set up Supabase
 
-4. **Configura le variabili d'ambiente**:
-   - Modifica il file `.env.local` inserendo i tuoi dati Supabase:
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to **Settings** → **API** 
+3. Copy your **Project URL** and **anon public key**
+
+### 3. Environment Variables
+
+Create a `.env.local` file in the root directory:
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-5. **Avvia il server di sviluppo**:
+### 4. Set up Database (Optional)
+
+If you need custom tables, go to your Supabase dashboard and create them via the SQL editor or Table editor.
+
+### 5. Run the Development Server
+
 ```bash
 pnpm dev
 ```
 
-6. **Apri il browser** su [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) to see your application.
 
-## 📱 Utilizzo
-
-### 1. Homepage (`/`)
-- Pagina di benvenuto con link per login, registrazione e dashboard
-- Design responsive e moderno
-
-### 2. Registrazione (`/register`)  
-- Form per creare un nuovo account
-- Validazione email e password
-- Conferma password richiesta
-- Email di verifica automatica
-
-### 3. Login (`/login`)
-- Form per accedere con email e password
-- Gestione errori di autenticazione
-- Redirect automatico alla dashboard dopo il login
-
-### 4. Dashboard (`/dashboard`)
-- **Pagina privata** accessibile solo agli utenti autenticati
-- Mostra informazioni dell'utente loggato
-- Pulsante di logout
-- Protezione automatica tramite middleware
-
-## 🔧 Struttura del Progetto
+## 📁 Project Structure
 
 ```
 src/
 ├── app/
-│   ├── dashboard/          # Pagina privata
-│   │   ├── page.tsx        # Dashboard principale
-│   │   └── logout-button.tsx # Componente logout
-│   ├── login/              # Pagina di login
-│   │   └── page.tsx
-│   ├── register/           # Pagina di registrazione  
-│   │   └── page.tsx
-│   ├── globals.css         # Stili globali
-│   ├── layout.tsx          # Layout principale
-│   └── page.tsx            # Homepage
+│   ├── dashboard/          # Protected dashboard pages
+│   ├── login/             # Login page
+│   ├── register/          # Registration page
+│   ├── setup/             # Account setup flow
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
 ├── components/
-│   └── ui/                 # Componenti shadcn/ui
+│   └── ui/                # shadcn/ui components
 ├── lib/
-│   ├── supabase/           # Configurazione Supabase
-│   │   ├── client.ts       # Client-side
-│   │   └── server.ts       # Server-side
-│   └── utils.ts            # Utility functions
-└── middleware.ts           # Middleware per auth
+│   └── supabase/          # Supabase client configuration
+└── middleware.ts          # Route protection middleware
 ```
 
-## 🔐 Sicurezza
+## 🔐 Authentication Flow
 
-- **Middleware automatico**: Protegge le route private
-- **SSR Authentication**: Verifica server-side delle sessioni  
-- **Cookie sicuri**: Gestione automatica dei token
-- **Validazione lato client e server**
+1. **Registration**: Users can sign up with email/password
+2. **Login**: Existing users can log in
+3. **Protected Routes**: Dashboard and setup pages require authentication
+4. **Middleware**: Automatic redirection for unauthenticated users
+5. **Session Management**: Persistent login state across page refreshes
 
-## 🎨 Personalizzazione
+## 🛠️ Customization
 
-### Aggiungere nuovi componenti Shadcn/ui:
+### Adding New UI Components
+
+This template uses [shadcn/ui](https://ui.shadcn.com/). Add new components:
+
 ```bash
-pnpm dlx shadcn@latest add [component-name]
+pnpm dlx shadcn@latest add button
 ```
 
-### Modificare i colori del tema:
-Modifica le variabili CSS in `src/app/globals.css`
+### Supabase Configuration
 
-## 🚀 Deploy
+The Supabase client is configured in `src/lib/supabase/`. You can extend it with:
 
-Il progetto è pronto per il deploy su **Vercel**, **Netlify** o altre piattaforme che supportano Next.js.
+- Custom queries
+- Real-time subscriptions  
+- File storage
+- Edge functions
 
-Assicurati di:
-1. Configurare le variabili d'ambiente sulla piattaforma di deploy
-2. Aggiungere il dominio di produzione nelle impostazioni di Supabase
+### Styling
 
-## 📚 Risorse
+- **Tailwind CSS**: Utility-first CSS framework
+- **CSS Variables**: Defined in `globals.css` for theme customization
+- **Dark Mode**: Automatic support via shadcn/ui theme provider
 
-- [Supabase Docs](https://supabase.com/docs)
-- [Next.js Docs](https://nextjs.org/docs)  
-- [Shadcn/ui Docs](https://ui.shadcn.com)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+## 📦 Built With
 
-## 🤝 Contributi
+- [Next.js 15](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Backend as a Service
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [shadcn/ui](https://ui.shadcn.com/) - UI components
+- [Lucide React](https://lucide.dev/) - Icons
 
-Sentiti libero di aprire issue o pull request per migliorare il progetto!
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Connect your repository to [Vercel](https://vercel.com)
+3. Add your environment variables in Vercel dashboard
+4. Deploy!
+
+### Other Platforms
+
+This template works with any platform that supports Next.js:
+- Netlify
+- Railway
+- DigitalOcean App Platform
+- AWS Amplify
+
+## 📝 Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key | ✅ |
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- [Supabase](https://supabase.com/) for the amazing backend platform
+- [Vercel](https://vercel.com/) for Next.js and hosting
+- [shadcn](https://twitter.com/shadcn) for the beautiful UI components
 
 ---
 
-**Buon sviluppo! 🎉**
+**Ready to build something amazing?** 🚀
+
+Start by cloning this template and customizing it for your needs!

@@ -11,17 +11,17 @@ export async function createClient() {
       supabaseUrl === 'your_supabase_project_url' || 
       supabaseAnonKey === 'your_supabase_anon_key') {
     throw new Error(`
-🔧 Configurazione Supabase richiesta!
+🔧 Supabase configuration required!
 
-Per utilizzare l'autenticazione, devi configurare le variabili d'ambiente in .env.local:
+To use authentication, you need to configure environment variables in .env.local:
 
-1. Vai su https://supabase.com e crea un nuovo progetto
-2. Nella dashboard del progetto, vai su Settings > API  
-3. Copia l'URL del progetto e la chiave anonima
-4. Aggiorna il file .env.local con i tuoi valori:
+1. Go to https://supabase.com and create a new project
+2. In the project dashboard, go to Settings > API  
+3. Copy the project URL and anonymous key
+4. Update the .env.local file with your values:
 
-NEXT_PUBLIC_SUPABASE_URL=https://tuoprogetto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima
+NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anonymous_key
     `)
   }
 

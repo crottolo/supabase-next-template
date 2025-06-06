@@ -8,24 +8,24 @@ export default function SetupPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2">🔧 Setup Supabase</h1>
-          <p className="text-gray-600">Configura il tuo progetto Supabase per abilitare l'autenticazione</p>
+          <p className="text-gray-600">Configure your Supabase project to enable authentication</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>1. Crea un progetto Supabase</CardTitle>
+            <CardTitle>1. Create a Supabase project</CardTitle>
             <CardDescription>
-              Vai su Supabase e crea un nuovo progetto
+              Go to Supabase and create a new project
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>1. Vai su <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">supabase.com</a></p>
-              <p>2. Clicca su "Start your project"</p>
-              <p>3. Crea un nuovo progetto e attendi che sia pronto</p>
+              <p>1. Go to <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">supabase.com</a></p>
+              <p>2. Click on &quot;Start your project&quot;</p>
+              <p>3. Create a new project and wait for it to be ready</p>
               <Button asChild className="w-full">
                 <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">
-                  Apri Supabase →
+                  Open Supabase →
                 </a>
               </Button>
             </div>
@@ -34,19 +34,19 @@ export default function SetupPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>2. Ottieni le credenziali API</CardTitle>
+            <CardTitle>2. Get API credentials</CardTitle>
             <CardDescription>
-              Copia URL e chiave anonima dal tuo progetto
+              Copy URL and anonymous key from your project
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>1. Nella dashboard del tuo progetto, vai su <strong>Settings → API</strong></p>
-              <p>2. Copia l'<strong>URL</strong> dalla sezione "Project URL"</p>
-              <p>3. Copia la <strong>anon key</strong> dalla sezione "Project API keys"</p>
+              <p>1. In your project dashboard, go to <strong>Settings → API</strong></p>
+              <p>2. Copy the <strong>URL</strong> from the &quot;Project URL&quot; section</p>
+              <p>3. Copy the <strong>anon key</strong> from the &quot;Project API keys&quot; section</p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">
-                  <strong>⚠️ Importante:</strong> Non condividere mai la "service_role" key! Usa solo la "anon" key.
+                  <strong>⚠️ Important:</strong> Never share the &quot;service_role&quot; key! Use only the &quot;anon&quot; key.
                 </p>
               </div>
             </div>
@@ -55,23 +55,23 @@ export default function SetupPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>3. Configura le variabili d'ambiente</CardTitle>
+            <CardTitle>3. Configure environment variables</CardTitle>
             <CardDescription>
-              Aggiorna il file .env.local con le tue credenziali
+              Update the .env.local file with your credentials
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>Nel file <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code>, sostituisci i placeholder:</p>
+              <p>In the <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> file, replace the placeholders:</p>
               <div className="bg-gray-50 border rounded-lg p-4">
                 <pre className="text-sm">
-{`NEXT_PUBLIC_SUPABASE_URL=https://tuoprogetto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
+{`NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anonymous_key`}
                 </pre>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-sm text-green-800">
-                  <strong>✅ Suggerimento:</strong> Dopo aver salvato le modifiche, riavvia il server di sviluppo con <code>pnpm dev</code>
+                  <strong>✅ Tip:</strong> After saving the changes, restart the development server with <code>pnpm dev</code>
                 </p>
               </div>
             </div>
@@ -80,26 +80,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
 
         <Card>
           <CardHeader>
-            <CardTitle>4. Testa l'autenticazione</CardTitle>
+            <CardTitle>4. Test authentication</CardTitle>
             <CardDescription>
-              Verifica che tutto funzioni correttamente
+              Verify that everything works correctly
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>Una volta configurato Supabase:</p>
+              <p>Once Supabase is configured:</p>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Vai alla pagina di registrazione</li>
-                <li>Crea un nuovo account</li>
-                <li>Controlla la tua email per la verifica</li>
-                <li>Effettua il login e accedi alla dashboard</li>
+                <li>Go to the registration page</li>
+                <li>Create a new account</li>
+                <li>Check your email for verification</li>
+                <li>Log in and access the dashboard</li>
               </ol>
               <div className="flex gap-4">
                 <Button asChild>
-                  <Link href="/register">Registrati</Link>
+                  <Link href="/register">Sign Up</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/login">Accedi</Link>
+                  <Link href="/login">Sign In</Link>
                 </Button>
               </div>
             </div>
@@ -108,7 +108,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
 
         <Card>
           <CardHeader>
-            <CardTitle>🔗 Risorse Utili</CardTitle>
+            <CardTitle>🔗 Useful Resources</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -118,8 +118,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
                 rel="noopener noreferrer"
                 className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <h3 className="font-semibold">📚 Docs Supabase Auth</h3>
-                <p className="text-sm text-gray-600">Documentazione ufficiale per l'autenticazione</p>
+                <h3 className="font-semibold">📚 Supabase Auth Docs</h3>
+                <p className="text-sm text-gray-600">Official documentation for authentication</p>
               </a>
               <a 
                 href="https://supabase.com/docs/guides/getting-started/quickstarts/nextjs" 
@@ -128,7 +128,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
                 className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <h3 className="font-semibold">⚡ Next.js Quickstart</h3>
-                <p className="text-sm text-gray-600">Guida rapida per Next.js + Supabase</p>
+                <p className="text-sm text-gray-600">Quick guide for Next.js + Supabase</p>
               </a>
             </div>
           </CardContent>
@@ -136,7 +136,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tua_chiave_anonima`}
 
         <div className="text-center">
           <Button asChild variant="outline">
-            <Link href="/">← Torna alla Home</Link>
+            <Link href="/">← Back to Home</Link>
           </Button>
         </div>
       </div>

@@ -1,15 +1,45 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Lista delle route che richiedono autenticazione
+// Supporta wildcard con * (es: /dashboard/* per tutte le sottorotte di dashboard)
+const protectedRoutes = [
+  '/dashboard/*',     // Include /dashboard, /dashboard/client, /dashboard/optimized, etc.
+  '/profile/*',       // Include /profile e tutte le sue sottorotte
+  '/settings/*',      // Include /settings e tutte le sue sottorotte
+  '/admin/*',         // Esempio: route admin protette
+  // Aggiungi qui altre route protette
+]
+
+// Funzione per verificare se una route richiede autenticazione
+function requiresAuth(pathname: string): boolean {
+  return protectedRoutes.some(route => {
+    if (route.endsWith('/*')) {
+      // Pattern con wildcard: verifica se il pathname inizia con la base del pattern
+      const basePath = route.slice(0, -2) // Rimuove '/*'
+      return pathname === basePath || pathname.startsWith(basePath + '/')
+    } else {
+      // Pattern esatto
+      return pathname === route || pathname.startsWith(route + '/')
+    }
+  })
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
+  // Verifica se la route corrente richiede autenticazione
+  if (!requiresAuth(request.nextUrl.pathname)) {
+    // Route pubblica, non serve autenticazione
+    return supabaseResponse
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Se le variabili d'ambiente non sono configurate correttamente, salta l'autenticazione
+  // If environment variables are not configured correctly, skip authentication
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl === 'your_supabase_project_url' || 
       supabaseAnonKey === 'your_supabase_anon_key') {
@@ -46,13 +76,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/register') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Solo per route protette: se non c'è utente, reindirizza al login
+  if (!user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
