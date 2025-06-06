@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isAutoLogging, setIsAutoLogging] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
@@ -86,33 +87,34 @@ export default function RegisterPage() {
       }
 
       if (data.success) {
-        setSuccess(`${data.message}\n\nUtente creato: ${data.user_login || email}\n\nAccesso automatico in corso...`)
+        setSuccess(`${data.message}\n\nUtente creato: ${data.user_login || email}\n\n🚀 Accesso automatico in corso...`)
+        setIsAutoLogging(true)
         
-        // Auto-login dopo registrazione riuscita
-        setTimeout(async () => {
-          try {
-            const loginResponse = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                username: email, 
-                password: password 
-              })
+        // Auto-login immediato dopo registrazione riuscita
+        try {
+          const loginResponse = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              username: email, 
+              password: password 
             })
+          })
 
-            if (loginResponse.ok) {
-              // Login automatico riuscito, vai alla dashboard
-              router.push('/dashboard?message=welcome-new-user')
-            } else {
-              // Login automatico fallito, vai al login manuale
-              router.push('/login?message=registration-success')
-            }
-          } catch (err) {
-            // Errore nell'auto-login, vai al login manuale
-            console.error('Auto-login failed:', err)
+          if (loginResponse.ok) {
+            // Login automatico riuscito, vai alla dashboard
+            router.push('/dashboard?message=welcome-new-user')
+          } else {
+            // Login automatico fallito, vai al login manuale
+            setIsAutoLogging(false)
             router.push('/login?message=registration-success')
           }
-        }, 2000)
+        } catch (err) {
+          // Errore nell'auto-login, vai al login manuale
+          console.error('Auto-login failed:', err)
+          setIsAutoLogging(false)
+          router.push('/login?message=registration-success')
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore durante la registrazione')
@@ -120,6 +122,9 @@ export default function RegisterPage() {
       setIsLoading(false)
     }
   }
+
+  // Determina se l'interfaccia deve essere disabilitata
+  const isDisabled = isLoading || isAutoLogging
 
   // Se signup non è disponibile, mostra messaggio
   if (!signupLoading && !signupAvailable) {
@@ -164,15 +169,31 @@ export default function RegisterPage() {
                   <Link href="/">Home</Link>
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+                      </div>
+        </CardContent>
+      </Card>
+
+      {/* Loading Overlay durante auto-login */}
+      {isAutoLogging && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4 text-center">
+            <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold mb-2">🚀 Accesso Automatico</h3>
+            <p className="text-gray-600 text-sm">
+              Stiamo effettuando il login con il tuo nuovo account...
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Sarai reindirizzato alla dashboard tra pochi istanti
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">✨ Crea Nuovo Account</CardTitle>
@@ -219,7 +240,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tua.email@esempio.com"
                 required
-                disabled={isLoading}
+                disabled={isDisabled}
               />
             </div>
 
@@ -228,11 +249,11 @@ export default function RegisterPage() {
               <Input
                 id="name"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Il tuo nome completo"
-                required
-                disabled={isLoading}
+                                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Il tuo nome completo"
+                  required
+                  disabled={isDisabled}
               />
             </div>
 
@@ -245,7 +266,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Almeno 8 caratteri"
                 required
-                disabled={isLoading}
+                disabled={isDisabled}
                 minLength={8}
               />
             </div>
@@ -259,13 +280,13 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ripeti la password"
                 required
-                disabled={isLoading}
+                disabled={isDisabled}
                 minLength={8}
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Registrazione in corso...' : '✨ Registrati'}
+            <Button type="submit" className="w-full" disabled={isDisabled}>
+              {isLoading ? 'Registrazione in corso...' : isAutoLogging ? '🚀 Accesso automatico...' : '✨ Registrati'}
             </Button>
           </form>
 

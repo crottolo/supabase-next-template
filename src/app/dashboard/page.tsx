@@ -29,7 +29,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch('/api/auth/me', {
+          cache: 'no-cache' // Evita cache problematiche ma non duplicati
+        })
         
         if (!response.ok) {
           window.location.href = '/login'
@@ -46,8 +48,11 @@ export default function DashboardPage() {
       }
     }
 
+    // Evita fetch multipli se già in loading
+    if (!loading) return
+    
     fetchSession()
-  }, [])
+  }, [loading])
 
   if (loading) {
     return (
