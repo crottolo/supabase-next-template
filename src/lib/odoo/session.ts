@@ -15,7 +15,7 @@ export interface DecodedSession extends SessionData {
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-dev-secret-change-in-production'
 )
-const JWT_EXPIRES_IN = '7d' // Sessione valida per 7 giorni
+// const JWT_EXPIRES_IN = '7d' // Sessione valida per 7 giorni - not used but kept for reference
 
 export class SessionManager {
   static async createSession(user: OdooUser, username: string): Promise<string> {

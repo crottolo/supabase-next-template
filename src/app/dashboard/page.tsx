@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import LogoutButton from "@/components/ui/logout-button"
 import { useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic'
 
-export default function DashboardPage() {
+function DashboardPageContent() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState("")
@@ -248,7 +249,7 @@ export default function DashboardPage() {
                   <div className="text-gray-400 text-6xl mb-4">📋</div>
                   <p className="text-gray-600">No partner data available</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    This user doesn't have associated partner information
+                    This user doesn&apos;t have associated partner information
                   </p>
                 </div>
               )}
@@ -362,4 +363,19 @@ export default function DashboardPage() {
       </div>
     </div>
   )
-} 
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento dashboard...</p>
+        </div>
+      </div>
+    }>
+      <DashboardPageContent />
+    </Suspense>
+  )
+}

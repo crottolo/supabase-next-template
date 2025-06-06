@@ -136,7 +136,7 @@ JWT_SECRET=your-super-secret-jwt-key`}
               >
                 <h3 className="font-semibold">🔗 Odoo External API</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Official documentation for Odoo's external API
+                  Official documentation for Odoo&apos;s external API
                 </p>
               </a>
               <a 

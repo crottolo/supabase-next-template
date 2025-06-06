@@ -150,7 +150,7 @@ export default function RegisterPage() {
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-semibold text-blue-800 mb-2">💬 Come ottenere un account</h4>
                 <p className="text-sm text-blue-700 mb-3">
-                  Contatta l'amministratore di sistema per richiedere un nuovo account Odoo.
+                  Contatta l&apos;amministratore di sistema per richiedere un nuovo account Odoo.
                 </p>
                 {config.url && (
                   <Button asChild variant="outline" size="sm">
@@ -330,7 +330,7 @@ export default function RegisterPage() {
           <div className="mt-6 p-3 bg-purple-50 border border-purple-200 rounded-lg">
             <h4 className="font-semibold text-purple-800 text-xs mb-1">📝 Registrazione Odoo</h4>
             <ul className="text-xs text-purple-700 space-y-0.5">
-              <li>• L'account verrà creato direttamente su Odoo</li>
+              <li>• L&apos;account verrà creato direttamente su Odoo</li>
               <li>• Riceverai una email di conferma</li>
               <li>• Usa le stesse credenziali per accedere</li>
             </ul>

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 Verifica esistenza utente: ${checkUserUrl}`)
 
     // Prepara i dati per l'API check_user
-    const requestData: any = {}
+    const requestData: { username?: string; email?: string } = {}
     if (username) requestData.username = username
     if (email) requestData.email = email
 

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { odooAuth } from '@/lib/odoo/client'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Verifica se Odoo è configurato
     if (!odooAuth.isConfigured()) {

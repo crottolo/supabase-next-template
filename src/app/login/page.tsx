@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import { useSignupAvailability } from "@/lib/hooks/useSignupAvailability"
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -170,7 +170,7 @@ export default function LoginPage() {
                   <div className="text-sm text-gray-600 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                     📧 Registrazione non disponibile
                     <p className="text-xs text-gray-500 mt-1">
-                      Contatta l'amministratore per ottenere un account
+                      Contatta l&apos;amministratore per ottenere un account
                     </p>
                   </div>
                 </div>
@@ -194,7 +194,7 @@ export default function LoginPage() {
           <div className="mt-6 p-3 bg-purple-50 border border-purple-200 rounded-lg">
             <h4 className="font-semibold text-purple-800 text-xs mb-1">🔗 Autenticazione Odoo</h4>
             <ul className="text-xs text-purple-700 space-y-0.5">
-              <li>• Usa le stesse credenziali dell'interfaccia web Odoo</li>
+              <li>• Usa le stesse credenziali dell&apos;interfaccia web Odoo</li>
               <li>• Le sessioni sono sicure e crittografate</li>
               <li>• Accesso automatico alle funzionalità autorizzate</li>
             </ul>
@@ -203,4 +203,19 @@ export default function LoginPage() {
       </Card>
     </div>
   )
-} 
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento pagina di login...</p>
+        </div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
