@@ -1,5 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getSessionFromCookie } from '@/lib/odoo/session'
 
 // Lista delle route che richiedono autenticazione
 // Supporta wildcard con * (es: /dashboard/* per tutte le sottorotte di dashboard)
@@ -11,8 +11,33 @@ const protectedRoutes = [
   // Aggiungi qui altre route protette
 ]
 
+// Route pubbliche che non richiedono autenticazione
+const publicRoutes = [
+  '/',
+  '/login',
+  '/register',
+  '/setup',
+  '/api/auth/*',      // API routes per autenticazione
+  '/api/health/*',    // Health check
+]
+
 // Funzione per verificare se una route richiede autenticazione
 function requiresAuth(pathname: string): boolean {
+  // Prima controlla se è una route pubblica
+  const isPublic = publicRoutes.some(route => {
+    if (route.endsWith('/*')) {
+      const basePath = route.slice(0, -2)
+      return pathname === basePath || pathname.startsWith(basePath + '/')
+    } else {
+      return pathname === route
+    }
+  })
+
+  if (isPublic) {
+    return false
+  }
+
+  // Poi controlla se è esplicitamente protetta
   return protectedRoutes.some(route => {
     if (route.endsWith('/*')) {
       // Pattern con wildcard: verifica se il pathname inizia con la base del pattern
@@ -26,72 +51,45 @@ function requiresAuth(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  const { pathname } = request.nextUrl
 
   // Verifica se la route corrente richiede autenticazione
-  if (!requiresAuth(request.nextUrl.pathname)) {
+  if (!requiresAuth(pathname)) {
     // Route pubblica, non serve autenticazione
-    return supabaseResponse
+    return NextResponse.next()
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Controlla se Odoo è configurato
+  const odooUrl = process.env.NEXT_PUBLIC_ODOO_URL
+  const odooDb = process.env.NEXT_PUBLIC_ODOO_DB
 
-  // If environment variables are not configured correctly, skip authentication
-  if (!supabaseUrl || !supabaseAnonKey || 
-      supabaseUrl === 'your_supabase_project_url' || 
-      supabaseAnonKey === 'your_supabase_anon_key') {
-    console.warn('⚠️  Supabase environment variables not configured. Authentication will not work.')
-    return supabaseResponse
+  if (!odooUrl || !odooDb) {
+    console.warn('⚠️ Odoo environment variables not configured. Authentication will not work.')
+    return NextResponse.next()
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-                 setAll(cookiesToSet) {
-           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-           supabaseResponse = NextResponse.next({
-             request,
-           })
-           cookiesToSet.forEach(({ name, value, options }) =>
-             supabaseResponse.cookies.set(name, value, options)
-           )
-         },
-      },
-    }
-  )
+  // Leggi il cookie di sessione
+  const cookieHeader = request.headers.get('cookie') || ''
+  const session = await getSessionFromCookie(cookieHeader)
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Solo per route protette: se non c'è utente, reindirizza al login
-  if (!user) {
+  // Se non c'è sessione valida, reindirizza al login
+  if (!session) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    // Aggiungi il redirect URL come parametro per tornare alla pagina originale dopo il login
+    url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object instead of the supabaseResponse object
+  // Se c'è una sessione valida, continua
+  const response = NextResponse.next()
 
-  return supabaseResponse
+  // Aggiungi headers con informazioni utente per le API routes
+  response.headers.set('x-user-id', session.user.id.toString())
+  response.headers.set('x-user-login', session.username)
+  response.headers.set('x-user-name', session.user.name)
+
+  return response
 }
 
 export const config = {
@@ -101,7 +99,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - *.svg, *.png, *.jpg, *.jpeg, *.gif, *.webp (static images)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

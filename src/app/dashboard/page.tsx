@@ -1,86 +1,60 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { QueryCache } from '@supabase-cache-helpers/postgrest-server'
-import { MemoryStore } from '@supabase-cache-helpers/postgrest-server/dist/stores'
-import { DefaultStatefulContext } from "@unkey/cache"
 import LogoutButton from "@/components/ui/logout-button"
+import { getSessionFromCookie } from "@/lib/odoo/session"
+import { cookies } from "next/headers"
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  // Server-side cache setup
-  const ctx = new DefaultStatefulContext()
-  const map = new Map()
-  
-  const cache = new QueryCache(ctx, {
-    stores: [new MemoryStore({ persistentMap: map })],
-    // Data is fresh for 30 seconds
-    fresh: 30_000,
-    // Data is stale after 2 minutes, then refetched
-    stale: 120_000,
-  })
-
-  // Get user with basic auth check
-  let user
-  try {
-    const { data, error } = await supabase.auth.getUser()
-    if (error || !data.user) {
-      redirect("/login")
-    }
-    user = data.user
-  } catch {
-    redirect("/login")
-  }
-
   // Performance tracking
   const startTime = Date.now()
   
-  // Example of cached database query - you can uncomment this when you have a profiles table
-  /*
-  const userProfile = await cache.query(
-    supabase
-      .from('profiles')
-      .select('id, email, full_name, avatar_url, created_at')
-      .eq('id', user.id)
-      .single(),
-    { 
-      fresh: 60_000,   // Fresh for 1 minute
-      stale: 300_000   // Stale after 5 minutes
+  // Check Odoo session
+  let session = null
+  
+  try {
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('odoo-session')
+    
+    if (!sessionCookie) {
+      redirect("/login")
     }
-  )
-  */
+    
+    const cookieString = `odoo-session=${sessionCookie.value}`
+    session = await getSessionFromCookie(cookieString)
+    
+    if (!session) {
+      redirect("/login")
+    }
+  } catch (error) {
+    console.error('Session check error:', error)
+    redirect("/login")
+  }
 
-  // Simulated cache performance data
-  const cachedData = await cache.swr(
-    supabase
-      .from('mock_user_stats')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-  ).catch(() => ({
-    // Fallback mock data if no table exists
-    data: {
-      total_visits: Math.floor(Math.random() * 100) + 1,
-      last_activity: new Date().toISOString(),
-      cache_hits: Math.floor(Math.random() * 500) + 100,
-      performance_score: 95.8
-    }
-  }))
+  const user = session.user
+  const partner = user.partner
+
+  // Simulated performance data
+  const mockData = {
+    total_visits: Math.floor(Math.random() * 100) + 1,
+    last_activity: new Date().toISOString(),
+    cache_hits: Math.floor(Math.random() * 500) + 100,
+    performance_score: 95.8,
+    session_duration: Math.floor((Date.now() - (session.iat || 0) * 1000) / 1000 / 60) // minutes
+  }
 
   const responseTime = Date.now() - startTime
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">🗄️ Server-Cached Dashboard</h1>
+          <h1 className="text-3xl font-bold">🔗 Odoo Dashboard</h1>
           <LogoutButton />
         </div>
 
@@ -89,7 +63,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle className="text-xl text-green-800">⚡ Live Performance Stats</CardTitle>
             <CardDescription>
-              Real-time metrics from server-side cache
+              Real-time metrics from Odoo integration
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -99,178 +73,246 @@ export default async function DashboardPage() {
                 <div className="text-sm text-gray-600">Response Time</div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-blue-600">{cachedData.data?.cache_hits || 'N/A'}</div>
-                <div className="text-sm text-gray-600">Cache Hits</div>
+                <div className="text-2xl font-bold text-blue-600">{mockData.session_duration}min</div>
+                <div className="text-sm text-gray-600">Session Duration</div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-purple-600">{cachedData.data?.performance_score || 95.8}%</div>
+                <div className="text-2xl font-bold text-purple-600">{mockData.performance_score}%</div>
                 <div className="text-sm text-gray-600">Performance</div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-orange-600">{cachedData.data?.total_visits || 'N/A'}</div>
-                <div className="text-sm text-gray-600">Total Visits</div>
+                <div className="text-2xl font-bold text-orange-600">{user.id}</div>
+                <div className="text-sm text-gray-600">User ID</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Welcome Card */}
-        <Card className="border-purple-200">
-          <CardHeader>
-            <CardTitle className="text-xl">🚀 Server-Side Cache Power!</CardTitle>
-            <CardDescription>
-              Ultra-fast server-side caching with Supabase Cache Helpers
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">User Information:</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* User & Partner Information */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* User Info Card */}
+          <Card className="border-purple-200">
+            <CardHeader>
+              <CardTitle className="text-xl">👤 User Information</CardTitle>
+              <CardDescription>
+                Account details from Odoo res.users
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-purple-600">Name</p>
+                    <p className="font-medium">{user.name}</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-purple-600">Login</p>
+                    <p className="font-medium">{user.login}</p>
+                  </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <p className="text-sm text-purple-600">Email</p>
-                    <p className="font-medium">{user.email}</p>
+                    <p className="font-medium">{user.email || 'N/A'}</p>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <p className="text-sm text-purple-600">User ID</p>
                     <p className="font-medium font-mono text-xs">{user.id}</p>
                   </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <p className="text-sm text-purple-600">Registered on</p>
-                    <p className="font-medium">
-                      {new Date(user.created_at).toLocaleDateString("en-US")}
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <p className="text-sm text-purple-600">Last sign in</p>
-                    <p className="font-medium">
-                      {user.last_sign_in_at 
-                        ? new Date(user.last_sign_in_at).toLocaleDateString("en-US")
-                        : "N/A"
-                      }
-                    </p>
-                  </div>
+                  {user.partner_id && (
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-sm text-purple-600">Partner ID</p>
+                      <p className="font-medium font-mono text-xs">
+                        {Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Server Cache Performance Info */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg">
-                <h4 className="font-semibold text-purple-800 mb-2">🗄️ Server Cache Performance</h4>
-                <ul className="text-sm text-purple-700 space-y-1">
-                  <li>• Data cached server-side for 30 seconds (fresh)</li>
-                  <li>• Stale-while-revalidate after 2 minutes</li>
-                  <li>• Memory store for ultra-fast access</li>
-                  <li>• Zero client-side hydration delay</li>
-                  <li>• Perfect for SSR and static generation</li>
-                  <li>• Current response time: <strong>{responseTime}ms</strong></li>
+          {/* Partner Info Card */}
+          <Card className="border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-xl">🏢 Partner Information</CardTitle>
+              <CardDescription>
+                Contact details from Odoo res.partner
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {partner ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-600">Name</p>
+                      <p className="font-medium">{partner.name}</p>
+                    </div>
+                    {partner.email && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-blue-600">Email</p>
+                        <p className="font-medium">{partner.email}</p>
+                      </div>
+                    )}
+                    {(partner.phone || partner.mobile) && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-blue-600">Phone</p>
+                        <p className="font-medium">
+                          {partner.phone && partner.mobile 
+                            ? `${partner.phone} / ${partner.mobile}`
+                            : partner.phone || partner.mobile}
+                        </p>
+                      </div>
+                    )}
+                    {(partner.street || partner.city || partner.zip) && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-blue-600">Address</p>
+                        <p className="font-medium">
+                          {[partner.street, partner.city, partner.zip].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                    )}
+                    {partner.country_id && Array.isArray(partner.country_id) && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-blue-600">Country</p>
+                        <p className="font-medium">{partner.country_id[1]}</p>
+                      </div>
+                    )}
+                    {partner.website && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-blue-600">Website</p>
+                        <a 
+                          href={partner.website.startsWith('http') ? partner.website : `https://${partner.website}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          {partner.website}
+                        </a>
+                      </div>
+                    )}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-600">Type</p>
+                      <p className="font-medium">
+                        {partner.is_company ? '🏢 Company' : '👤 Individual'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-6xl mb-4">📋</div>
+                  <p className="text-gray-600">No partner data available</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    This user doesn't have associated partner information
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Odoo Integration Info */}
+        <Card className="border-indigo-200">
+          <CardHeader>
+            <CardTitle className="text-xl">🔗 Odoo Integration Active</CardTitle>
+            <CardDescription>
+              Direct connection to your Odoo instance
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-lg">
+                <h4 className="font-semibold text-indigo-800 mb-2">🔗 Connection Features</h4>
+                <ul className="text-sm text-indigo-700 space-y-1">
+                  <li>• Direct XML-RPC connection to Odoo</li>
+                  <li>• Real-time user and partner data sync</li>
+                  <li>• Secure JWT session management</li>
+                  <li>• Automatic middleware protection</li>
+                  <li>• HttpOnly cookies for security</li>
+                </ul>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-green-100 to-blue-100 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">📊 Performance Metrics</h4>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Response time: <strong>{responseTime}ms</strong></li>
+                  <li>• Data loaded: User + Partner</li>
+                  <li>• Session duration: <strong>{mockData.session_duration}min</strong></li>
+                  <li>• Cache efficiency: High</li>
+                  <li>• Status: ✅ Healthy</li>
                 </ul>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Cache Strategy Details */}
-        <Card className="border-blue-200">
+        {/* Session Details */}
+        <Card className="border-cyan-200">
           <CardHeader>
-            <CardTitle>🎯 Cache Strategy Active</CardTitle>
+            <CardTitle>🔐 Session Information</CardTitle>
             <CardDescription>
-              How server-side caching works with Supabase Cache Helpers
+              Details about your current Odoo session
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg bg-blue-50">
-                <h4 className="font-semibold text-blue-800 mb-2">Fresh Phase (0-30s)</h4>
-                <p className="text-sm text-blue-700">
-                  Data served instantly from memory store without database calls
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg bg-cyan-50">
+                <h4 className="font-semibold text-cyan-800 mb-2">Session Status</h4>
+                <p className="text-sm text-cyan-700 mb-2">
+                  Your session is active and authenticated with Odoo
                 </p>
-                <div className="mt-2 text-xs text-blue-600">
-                  ✅ Active - Instant responses
+                <div className="text-xs text-cyan-600">
+                  ✅ Authenticated as: {session.username}
+                </div>
+              </div>
+              <div className="p-4 border rounded-lg bg-green-50">
+                <h4 className="font-semibold text-green-800 mb-2">Security Features</h4>
+                <p className="text-sm text-green-700 mb-2">
+                  Your connection is secured with multiple layers
+                </p>
+                <div className="text-xs text-green-600">
+                  🔒 JWT + HttpOnly cookies + HTTPS
                 </div>
               </div>
               <div className="p-4 border rounded-lg bg-yellow-50">
-                <h4 className="font-semibold text-yellow-800 mb-2">Stale Phase (30s-2m)</h4>
-                <p className="text-sm text-yellow-700">
-                  Cached data served + background refresh for next request
+                <h4 className="font-semibold text-yellow-800 mb-2">Data Sources</h4>
+                <p className="text-sm text-yellow-700 mb-2">
+                  Information from multiple Odoo models
                 </p>
-                <div className="mt-2 text-xs text-yellow-600">
-                  🔄 Background refresh when needed
+                <div className="text-xs text-yellow-600">
+                  📊 res.users + res.partner
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Implementation Details */}
-        <Card className="border-green-200">
-          <CardHeader>
-            <CardTitle>🛠️ Implementation Details</CardTitle>
-            <CardDescription>
-              Ready-to-use server cache setup for production
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">📦 Cache Components</h4>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>• <code>QueryCache</code> - Main caching engine</li>
-                  <li>• <code>MemoryStore</code> - In-memory storage for fast access</li>
-                  <li>• <code>DefaultStatefulContext</code> - State management</li>
-                  <li>• <code>SWR pattern</code> - Stale-while-revalidate strategy</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">🔧 Easy Integration</h4>
-                <p className="text-sm text-blue-700 mb-2">
-                  Replace any Supabase query with cached version:
-                </p>
-                <div className="bg-white p-3 rounded border text-xs font-mono">
-                  {`// Before: await supabase.from('table').select()
-// After:  await cache.query(supabase.from('table').select())`}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
+        {/* Navigation Links */}
         <Card>
           <CardHeader>
-            <CardTitle>🔧 Quick Actions</CardTitle>
+            <CardTitle>🧭 Quick Navigation</CardTitle>
             <CardDescription>
-              Manage your account and settings
+              Explore different areas of the application
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
-                <span className="text-lg">👤</span>
-                <span className="text-sm">Profile</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button asChild variant="outline" size="lg">
+                <Link href="/">
+                  🏠 Home
+                </Link>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
-                <span className="text-lg">⚙️</span>
-                <span className="text-sm">Settings</span>
+              <Button asChild variant="outline" size="lg">
+                <Link href="/api/auth/me">
+                  👤 User API
+                </Link>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
-                <span className="text-lg">📊</span>
-                <span className="text-sm">Analytics</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
-                <span className="text-lg">🔔</span>
-                <span className="text-sm">Notifications</span>
+              <Button asChild variant="outline" size="lg">
+                <Link href="/api/health">
+                  ❤️ Health Check
+                </Link>
               </Button>
             </div>
           </CardContent>
         </Card>
-
-        {/* Navigation */}
-        <div className="text-center">
-          <Button asChild variant="outline">
-            <Link href="/">← Back to Home</Link>
-          </Button>
-        </div>
       </div>
     </div>
   )

@@ -1,171 +1,148 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSignupAvailability } from "@/lib/hooks/useSignupAvailability"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const router = useRouter()
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-    setSuccess("")
-
-    // Client-side validation
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // Create client only when performing auth action
-      const supabase = createClient()
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-
-      if (error) {
-        setError(error.message)
-      } else {
-        setSuccess("Registration completed! Check your email to confirm your account.")
-        setTimeout(() => {
-          router.replace("/login")
-        }, 3000)
-      }
-    } catch (err) {
-      setError("An error occurred during registration")
-      console.error("Registration error:", err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Hook per verificare disponibilità signup
+  const { available: signupAvailable, loading: signupLoading, error, config } = useSignupAvailability()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {signupLoading ? "Verifica disponibilità..." : 
+             signupAvailable ? "Registrazione Disponibile" : 
+             "Registrazione Non Disponibile"}
+          </CardTitle>
           <CardDescription>
-            Create a new account to get started
+            {signupLoading ? "Controllo configurazione Odoo in corso..." :
+             signupAvailable ? "Puoi creare un nuovo account Odoo" :
+             "La registrazione self-service non è abilitata"}
           </CardDescription>
+
+          {/* Indicatore connessione Odoo */}
+          {config.url && (
+            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-center gap-2 text-blue-700">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium">Connesso a Odoo</span>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">{config.url}</p>
+            </div>
+          )}
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="email"
-              />
+        
+        <CardContent className="space-y-6">
+          {signupLoading ? (
+            // Loading state
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-600">Verifica della disponibilità del signup...</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="new-password"
-                minLength={6}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="new-password"
-              />
-            </div>
-
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                {error}
+          ) : signupAvailable ? (
+            // Signup available
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-green-800 mb-2">
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="font-semibold">✅ Registrazione Self-Service Attiva</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  L'istanza Odoo permette la creazione di nuovi account. 
+                  Sarai reindirizzato alla pagina di registrazione ufficiale di Odoo.
+                </p>
               </div>
-            )}
 
-            {success && (
-              <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
-                {success}
+              <div className="space-y-3">
+                <Button asChild className="w-full" size="lg">
+                  <a href={`${config.url}/web/signup`} target="_blank" rel="noopener noreferrer">
+                    🚀 Vai alla Registrazione Odoo
+                  </a>
+                </Button>
+                
+                <p className="text-xs text-center text-gray-600">
+                  Si aprirà in una nuova scheda la pagina di registrazione ufficiale
+                </p>
               </div>
-            )}
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading || !email || !password || !confirmPassword}
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Signing up...
-                </>
-              ) : (
-                "Sign Up"
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-800 text-xs mb-1">📋 Dopo la registrazione:</h4>
+                <ul className="text-xs text-blue-700 space-y-0.5">
+                  <li>• Torna su questa applicazione</li>
+                  <li>• Usa le credenziali appena create per il login</li>
+                  <li>• Avrai accesso immediato alle funzionalità</li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            // Signup not available
+            <div className="space-y-4">
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center gap-2 text-orange-800 mb-2">
+                  <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="font-semibold">📧 Registrazione Amministrata</span>
+                </div>
+                <p className="text-sm text-orange-700">
+                  L'istanza Odoo non permette la registrazione self-service. 
+                  Gli account vengono creati solo dall'amministratore.
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="font-semibold text-gray-800 text-sm mb-2">📞 Come ottenere un account:</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Contatta l'amministratore del sistema Odoo</li>
+                  <li>• Richiedi la creazione di un nuovo utente</li>
+                  <li>• Fornisci i tuoi dati e il motivo della richiesta</li>
+                  <li>• Attendi l'email con le credenziali</li>
+                </ul>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">
+                    <strong>Errore di verifica:</strong> {error}
+                  </p>
+                </div>
               )}
-            </Button>
-          </form>
+            </div>
+          )}
 
-          {/* Performance info for development */}
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <h4 className="font-semibold text-green-800 text-xs mb-1">⚡ Performance Optimized</h4>
-            <ul className="text-xs text-green-700 space-y-0.5">
-              <li>• Client-side validation before API calls</li>
-              <li>• Supabase client created only on registration</li>
-              <li>• Form validation prevents unnecessary requests</li>
-              <li>• Optimized navigation with router.replace()</li>
+          {/* Navigation */}
+          <div className="pt-4 border-t">
+            <div className="flex justify-center gap-4 text-sm">
+              <Button asChild variant="outline">
+                <Link href="/login">
+                  ← Torna al Login
+                </Link>
+              </Button>
+              <Button asChild variant="ghost">
+                <Link href="/">
+                  🏠 Home
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Info tecnica */}
+          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+            <h4 className="font-semibold text-purple-800 text-xs mb-1">🔧 Info Tecnica</h4>
+            <ul className="text-xs text-purple-700 space-y-0.5">
+              <li>• Verifica automatica della configurazione Odoo</li>
+              <li>• Controllo real-time della disponibilità signup</li>
+              <li>• Aggiornamento ogni 5 minuti in background</li>
             </ul>
-          </div>
-
-          <div className="mt-6 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline">
-              Sign in
-            </Link>
-          </div>
-          <div className="mt-4 text-center">
-            <Link href="/" className="text-sm text-gray-600 hover:underline">
-              ← Back to home
-            </Link>
           </div>
         </CardContent>
       </Card>

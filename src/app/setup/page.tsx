@@ -4,49 +4,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function SetupPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-2">🔧 Setup Supabase</h1>
-          <p className="text-gray-600">Configure your Supabase project to enable authentication</p>
+          <h1 className="text-4xl font-bold mb-2">🔧 Setup Odoo Integration</h1>
+          <p className="text-gray-600">Configure your Odoo connection to enable authentication</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>1. Create a Supabase project</CardTitle>
+            <CardTitle>1. Configure Environment Variables</CardTitle>
             <CardDescription>
-              Go to Supabase and create a new project
+              Set up your Odoo connection parameters
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p>1. Go to <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">supabase.com</a></p>
-              <p>2. Click on &quot;Start your project&quot;</p>
-              <p>3. Create a new project and wait for it to be ready</p>
-              <Button asChild className="w-full">
-                <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">
-                  Open Supabase →
-                </a>
-              </Button>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-semibold text-blue-800 mb-2">Required Environment Variables</h4>
+              <p className="text-sm text-blue-700 mb-3">
+                Create or update your <code className="bg-white px-2 py-1 rounded text-xs">.env.local</code> file:
+              </p>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-x-auto">
+{`NEXT_PUBLIC_ODOO_URL=https://your-odoo-instance.com
+NEXT_PUBLIC_ODOO_DB=your-database-name
+JWT_SECRET=your-super-secret-jwt-key`}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>2. Get API credentials</CardTitle>
+            <CardTitle>2. Odoo Instance Requirements</CardTitle>
             <CardDescription>
-              Copy URL and anonymous key from your project
+              Ensure your Odoo instance is properly configured
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p>1. In your project dashboard, go to <strong>Settings → API</strong></p>
-              <p>2. Copy the <strong>URL</strong> from the &quot;Project URL&quot; section</p>
-              <p>3. Copy the <strong>anon key</strong> from the &quot;Project API keys&quot; section</p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-800">
-                  <strong>⚠️ Important:</strong> Never share the &quot;service_role&quot; key! Use only the &quot;anon&quot; key.
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg bg-green-50">
+                <h4 className="font-semibold text-green-800 mb-2">✅ XML-RPC Enabled</h4>
+                <p className="text-sm text-green-700">
+                  Your Odoo instance must have XML-RPC API enabled (default for most installations)
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg bg-yellow-50">
+                <h4 className="font-semibold text-yellow-800 mb-2">👤 User Access</h4>
+                <p className="text-sm text-yellow-700">
+                  Users need valid Odoo accounts with appropriate permissions
                 </p>
               </div>
             </div>
@@ -55,23 +60,29 @@ export default function SetupPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>3. Configure environment variables</CardTitle>
+            <CardTitle>3. Configuration Details</CardTitle>
             <CardDescription>
-              Update the .env.local file with your credentials
+              Detailed explanation of each environment variable
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>In the <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> file, replace the placeholders:</p>
-              <div className="bg-gray-50 border rounded-lg p-4">
-                <pre className="text-sm">
-{`NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anonymous_key`}
-                </pre>
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h4 className="font-semibold">NEXT_PUBLIC_ODOO_URL</h4>
+                <p className="text-sm text-gray-600">
+                  The complete URL of your Odoo instance (e.g., https://mycompany.odoo.com)
+                </p>
               </div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-green-800">
-                  <strong>✅ Tip:</strong> After saving the changes, restart the development server with <code>pnpm dev</code>
+              <div className="border-l-4 border-green-500 pl-4">
+                <h4 className="font-semibold">NEXT_PUBLIC_ODOO_DB</h4>
+                <p className="text-sm text-gray-600">
+                  The database name of your Odoo instance (usually your company name)
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-500 pl-4">
+                <h4 className="font-semibold">JWT_SECRET</h4>
+                <p className="text-sm text-gray-600">
+                  A secret key for signing JWT tokens (generate a strong random string)
                 </p>
               </div>
             </div>
@@ -80,26 +91,28 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anonymous_key`}
 
         <Card>
           <CardHeader>
-            <CardTitle>4. Test authentication</CardTitle>
+            <CardTitle>4. Test Your Configuration</CardTitle>
             <CardDescription>
-              Verify that everything works correctly
+              Verify that everything is working correctly
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>Once Supabase is configured:</p>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>Go to the registration page</li>
-                <li>Create a new account</li>
-                <li>Check your email for verification</li>
-                <li>Log in and access the dashboard</li>
-              </ol>
-              <div className="flex gap-4">
-                <Button asChild>
-                  <Link href="/register">Sign Up</Link>
+              <p className="text-sm text-gray-700">Once Odoo is configured:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button asChild size="lg" className="h-auto p-4 flex flex-col gap-2">
+                  <Link href="/login">
+                    <span className="text-lg">🔑</span>
+                    <span>Test Login</span>
+                    <span className="text-xs opacity-75">Try logging in with Odoo credentials</span>
+                  </Link>
                 </Button>
-                <Button asChild variant="outline">
-                  <Link href="/login">Sign In</Link>
+                <Button asChild variant="outline" size="lg" className="h-auto p-4 flex flex-col gap-2">
+                  <Link href="/dashboard">
+                    <span className="text-lg">📊</span>
+                    <span>View Dashboard</span>
+                    <span className="text-xs opacity-75">Access protected content</span>
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -108,29 +121,54 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anonymous_key`}
 
         <Card>
           <CardHeader>
-            <CardTitle>🔗 Useful Resources</CardTitle>
+            <CardTitle>📚 Additional Resources</CardTitle>
+            <CardDescription>
+              Helpful links and documentation
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <a 
-                href="https://supabase.com/docs/guides/auth" 
-                target="_blank" 
+                className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                href="https://www.odoo.com/documentation/17.0/developer/reference/external_api.html"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <h3 className="font-semibold">📚 Supabase Auth Docs</h3>
-                <p className="text-sm text-gray-600">Official documentation for authentication</p>
+                <h3 className="font-semibold">🔗 Odoo External API</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Official documentation for Odoo's external API
+                </p>
               </a>
               <a 
-                href="https://supabase.com/docs/guides/getting-started/quickstarts/nextjs" 
-                target="_blank" 
+                className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                href="https://github.com/iraycd/odoo-xmlrpc-ts"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <h3 className="font-semibold">⚡ Next.js Quickstart</h3>
-                <p className="text-sm text-gray-600">Quick guide for Next.js + Supabase</p>
+                <h3 className="font-semibold">📦 odoo-xmlrpc-ts</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  TypeScript library used for Odoo integration
+                </p>
               </a>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800">🔒 Security Notes</CardTitle>
+            <CardDescription>
+              Important security considerations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-orange-700 space-y-2">
+              <li>• Never commit your <code>.env.local</code> file to version control</li>
+              <li>• Use strong, randomly generated JWT secrets in production</li>
+              <li>• Ensure your Odoo instance uses HTTPS in production</li>
+              <li>• Regularly rotate your JWT secret for enhanced security</li>
+              <li>• Consider using environment-specific configurations</li>
+            </ul>
           </CardContent>
         </Card>
 

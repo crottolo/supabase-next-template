@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 
 // Props interface for the logout button component
@@ -17,13 +16,32 @@ export default function LogoutButton({
   className 
 }: LogoutButtonProps) {
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSignOut = async () => {
-    // Sign out the user and redirect to home page
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+    try {
+      // Chiama l'API di logout Odoo
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Redirect alla home page dopo il logout
+        window.location.href = "/"
+      } else {
+        console.error('Logout failed')
+        // Fallback: redirect comunque
+        router.push("/")
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback: redirect comunque
+      router.push("/")
+      router.refresh()
+    }
   }
 
   return (
