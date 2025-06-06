@@ -46,6 +46,28 @@ export default function RegisterPage() {
     }
 
     try {
+      // Prima verifica se l'utente esiste già
+      const checkResponse = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: email,
+          username: email 
+        })
+      })
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json()
+        
+        if (checkData.success && checkData.exists) {
+          setError(`Un utente con questa email esiste già: ${checkData.user_info?.name || 'Utente esistente'}`)
+          setIsLoading(false)
+          return
+        }
+      }
+      // Se il check fallisce, continua comunque con la registrazione
+
+      // Procedi con la registrazione
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,24 +86,33 @@ export default function RegisterPage() {
       }
 
       if (data.success) {
-        setSuccess(data.message)
+        setSuccess(`${data.message}\n\nUtente creato: ${data.user_login || email}\n\nAccesso automatico in corso...`)
         
-        if (data.redirectUrl) {
-          // Se Odoo ha fornito un URL di redirect, mostriamo il messaggio e il link
-          setTimeout(() => {
-            setSuccess(prev => `${prev}\n\nSarai reindirizzato a Odoo per completare la configurazione.`)
-          }, 2000)
-        } else if (data.needsConfirmation) {
-          // Registrazione richiede conferma email
-          setTimeout(() => {
-            router.push('/login?message=registration-pending')
-          }, 3000)
-        } else {
-          // Registrazione completata, vai al login
-          setTimeout(() => {
+        // Auto-login dopo registrazione riuscita
+        setTimeout(async () => {
+          try {
+            const loginResponse = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                username: email, 
+                password: password 
+              })
+            })
+
+            if (loginResponse.ok) {
+              // Login automatico riuscito, vai alla dashboard
+              router.push('/dashboard?message=welcome-new-user')
+            } else {
+              // Login automatico fallito, vai al login manuale
+              router.push('/login?message=registration-success')
+            }
+          } catch (err) {
+            // Errore nell'auto-login, vai al login manuale
+            console.error('Auto-login failed:', err)
             router.push('/login?message=registration-success')
-          }, 2000)
-        }
+          }
+        }, 2000)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore durante la registrazione')

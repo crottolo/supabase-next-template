@@ -37,81 +37,115 @@ export async function POST(request: NextRequest) {
 
     const config = odooAuth.getConfig()!
 
-    // Invio richiesta di registrazione all'endpoint Odoo signup
-    const signupUrl = `${config.url}/web/signup`
+    // Usa l'API custom /api/create_user del modulo create_user_api
+    const createUserUrl = `${config.url}/api/create_user`
     
-    console.log(`🔗 Tentativo registrazione su: ${signupUrl}`)
+    console.log(`🔗 Tentativo registrazione su API custom: ${createUserUrl}`)
 
-    // Prepara i dati del form come li aspetta Odoo
-    const formData = new URLSearchParams({
-      'csrf_token': '', // Odoo gestirà il CSRF
-      'name': name,
-      'login': email,
-      'password': password,
-      'confirm_password': confirmPassword,
-      'redirect': '/web',
-      'token': '',
-      'db': config.db
-    })
+    // Prepara i dati per l'API custom Odoo
+    const requestData = {
+      username: email,        // Usa email come username
+      password: password,
+      email: email,
+      name: name,
+      user_type: 'portal',    // Solo utenti portal per sicurezza
+      phone: ''               // Opzionale, vuoto per ora
+    }
 
-    const response = await fetch(signupUrl, {
+    const response = await fetch(createUserUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (compatible; Odoo-Next-Signup/1.0)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; Odoo-Next-API/1.0)',
+        'Accept': 'application/json'
       },
-      body: formData,
-      // Non seguire redirect automaticamente per gestire la risposta
-      redirect: 'manual'
+      body: JSON.stringify(requestData)
     })
 
-    console.log(`📊 Risposta Odoo signup: ${response.status} ${response.statusText}`)
+    console.log(`📊 Risposta Odoo API: ${response.status} ${response.statusText}`)
 
-    // Controlla il risultato
-    if (response.status === 302 || response.status === 200) {
-      // Registrazione riuscita (redirect o success page)
-      const location = response.headers.get('location')
+    // Gestione risposta dell'API custom (formato JSON-RPC)
+    if (response.ok) {
+      const responseData = await response.json()
       
-      if (location && location.includes('/web')) {
-        console.log(`✅ Registrazione completata, redirect a: ${location}`)
+      // Estrai il risultato dal formato JSON-RPC
+      const result = responseData.result || responseData
+      
+      console.log(`🔍 Parsing risposta API:`, { responseData, result })
+      
+      if (result.status === 'success') {
+        console.log(`✅ Utente creato con successo: ${result.user_login} (ID: ${result.user_id})`)
+        
         return NextResponse.json({
           success: true,
-          message: 'Registrazione completata con successo!',
-          redirectUrl: `${config.url}${location}`
+          message: 'Account creato con successo! Ora puoi effettuare il login.',
+          user_id: result.user_id,
+          user_login: result.user_login,
+          user_email: result.user_email
         })
       } else {
-        // Controllo se c'è un messaggio di errore nella risposta
-        const responseText = await response.text()
+        // Errore dall'API Odoo
+        console.error(`❌ Errore API Odoo:`, result)
         
-        if (responseText.includes('already exists') || responseText.includes('già esiste')) {
+        // Gestisci errori specifici
+        const errorMessage = result.message || result.error || 'Errore sconosciuto'
+        
+        if (errorMessage.includes('already exists') || errorMessage.includes('duplicate') || errorMessage.includes('esistente')) {
           return NextResponse.json(
-            { error: 'Un utente con questa email esiste già' },
+            { error: 'Un utente con questa email o username esiste già' },
             { status: 409 }
           )
+        } else if (errorMessage.includes('Access denied') || errorMessage.includes('denied')) {
+          return NextResponse.json(
+            { error: 'Accesso negato: server non autorizzato. Contatta l\'amministratore.' },
+            { status: 403 }
+          )
+        } else if (errorMessage.includes('invalid') || errorMessage.includes('formato')) {
+          return NextResponse.json(
+            { error: 'Dati non validi: ' + errorMessage },
+            { status: 400 }
+          )
+        } else {
+          return NextResponse.json(
+            { error: errorMessage },
+            { status: 400 }
+          )
         }
-        
-        return NextResponse.json({
-          success: true,
-          message: 'Registrazione inviata. Controlla la tua email per confermare l\'account.',
-          needsConfirmation: true
-        })
       }
-    } else if (response.status === 400) {
-      return NextResponse.json(
-        { error: 'Dati di registrazione non validi' },
-        { status: 400 }
-      )
     } else {
-      console.error(`❌ Errore registrazione Odoo: ${response.status}`)
-      return NextResponse.json(
-        { error: 'Errore durante la registrazione. Riprova più tardi.' },
-        { status: 500 }
-      )
+      // Errore HTTP
+      const errorText = await response.text()
+      console.error(`❌ Errore HTTP ${response.status}: ${errorText}`)
+      
+      if (response.status === 403) {
+        return NextResponse.json(
+          { error: 'Accesso negato: IP non autorizzato per la registrazione' },
+          { status: 403 }
+        )
+      } else if (response.status === 404) {
+        return NextResponse.json(
+          { error: 'API di registrazione non disponibile. Contatta l\'amministratore.' },
+          { status: 404 }
+        )
+      } else {
+        return NextResponse.json(
+          { error: 'Errore del server durante la registrazione. Riprova più tardi.' },
+          { status: 500 }
+        )
+      }
     }
 
   } catch (error) {
     console.error('Registration error:', error)
+    
+    // Gestisci errori di rete
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return NextResponse.json(
+        { error: 'Impossibile connettersi al server Odoo. Controlla la configurazione.' },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Errore interno del server' },
       { status: 500 }

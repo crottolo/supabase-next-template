@@ -1,39 +1,71 @@
-import { redirect } from "next/navigation"
+'use client'
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import LogoutButton from "@/components/ui/logout-button"
-import { getSessionFromCookie } from "@/lib/odoo/session"
-import { cookies } from "next/headers"
+import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic'
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  const [session, setSession] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState("")
+  const searchParams = useSearchParams()
+  const urlMessage = searchParams.get('message')
+
+  // Gestisci messaggi dalla URL
+  useEffect(() => {
+    if (urlMessage === 'welcome-new-user') {
+      setMessage('🎉 Benvenuto! Il tuo account è stato creato con successo e sei ora loggato.')
+    }
+  }, [urlMessage])
+
+  // Fetch session data
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        
+        if (!response.ok) {
+          window.location.href = '/login'
+          return
+        }
+        
+        const data = await response.json()
+        setSession(data)
+      } catch (error) {
+        console.error('Session fetch error:', error)
+        window.location.href = '/login'
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSession()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null // Will redirect to login
+  }
+  
   // Performance tracking
   const startTime = Date.now()
-  
-  // Check Odoo session
-  let session = null
-  
-  try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('odoo-session')
-    
-    if (!sessionCookie) {
-      redirect("/login")
-    }
-    
-    const cookieString = `odoo-session=${sessionCookie.value}`
-    session = await getSessionFromCookie(cookieString)
-    
-    if (!session) {
-      redirect("/login")
-    }
-  } catch (error) {
-    console.error('Session check error:', error)
-    redirect("/login")
-  }
 
   const user = session.user
   const partner = user.partner
@@ -57,6 +89,15 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold">🔗 Odoo Dashboard</h1>
           <LogoutButton />
         </div>
+
+        {/* Welcome Message */}
+        {message && (
+          <Alert className="border-green-200 bg-green-50">
+            <AlertDescription className="text-green-700">
+              {message}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Performance Stats */}
         <Card className="border-green-200 bg-green-50">

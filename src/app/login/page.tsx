@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -18,12 +18,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/dashboard'
+  const urlMessage = searchParams.get('message')
   
   // Hook per verificare disponibilità signup
   const { available: signupAvailable, loading: signupLoading, config } = useSignupAvailability()
+
+  // Gestisci messaggi dalla URL
+  useEffect(() => {
+    if (urlMessage === 'registration-success') {
+      setMessage('🎉 Registrazione completata con successo! Ora puoi effettuare il login.')
+    } else if (urlMessage === 'registration-pending') {
+      setMessage('📧 Registrazione inviata. Controlla la tua email per attivare l\'account.')
+    }
+  }, [urlMessage])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,6 +90,14 @@ export default function LoginPage() {
               <Alert className="border-red-200 bg-red-50">
                 <AlertDescription className="text-red-700">
                   {error}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {message && (
+              <Alert className="border-green-200 bg-green-50">
+                <AlertDescription className="text-green-700">
+                  {message}
                 </AlertDescription>
               </Alert>
             )}
