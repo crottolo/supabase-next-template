@@ -9,8 +9,12 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables')
+  // Se le variabili d'ambiente non sono configurate correttamente, salta l'autenticazione
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'your_supabase_project_url' || 
+      supabaseAnonKey === 'your_supabase_anon_key') {
+    console.warn('⚠️  Supabase environment variables not configured. Authentication will not work.')
+    return supabaseResponse
   }
 
   const supabase = createServerClient(

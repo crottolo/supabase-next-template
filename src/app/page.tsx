@@ -28,6 +28,13 @@ export default function Home() {
               Dashboard (Privata)
             </Button>
           </Link>
+          <div className="pt-4 border-t">
+            <Link href="/setup" className="block">
+              <Button variant="ghost" className="w-full" size="sm">
+                🔧 Setup Supabase
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
