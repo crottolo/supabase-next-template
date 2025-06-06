@@ -41,7 +41,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Imposta il cookie di sessione
-    response.headers.set('Set-Cookie', createSessionCookie(sessionToken))
+    const cookieHeader = createSessionCookie(sessionToken)
+    response.headers.set('Set-Cookie', cookieHeader)
+    
+    console.log('🍪 Setting session cookie:', cookieHeader.substring(0, 100) + '...')
 
     return response
 

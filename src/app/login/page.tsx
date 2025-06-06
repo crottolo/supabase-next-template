@@ -54,8 +54,23 @@ function LoginPageContent() {
         throw new Error(data.error || 'Login failed')
       }
 
-      // Redirect to the intended page
-      router.push(redirectTo)
+      console.log('✅ Login successful, redirecting to:', redirectTo)
+      
+      // Redirect più robusto per produzione
+      try {
+        router.push(redirectTo)
+        
+        // Fallback per browser che non supportano router.push immediato
+        setTimeout(() => {
+          if (window.location.pathname === '/login') {
+            console.log('🔄 Router.push fallback, using window.location')
+            window.location.href = redirectTo
+          }
+        }, 500)
+      } catch (err) {
+        console.error('Router.push failed, using window.location:', err)
+        window.location.href = redirectTo
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

@@ -92,7 +92,13 @@ export async function getSessionFromCookie(cookieString: string): Promise<Decode
 
 export function createSessionCookie(token: string): string {
   const maxAge = 7 * 24 * 60 * 60 // 7 giorni in secondi
-  return `${SESSION_COOKIE_NAME}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Strict; Secure=${process.env.NODE_ENV === 'production'}`
+  const isProduction = process.env.NODE_ENV === 'production'
+  const isHttps = process.env.NEXT_PUBLIC_SITE_URL?.startsWith('https') || false
+  
+  // Usa Secure solo se siamo in produzione E su HTTPS
+  const secureFlag = isProduction && isHttps
+  
+  return `${SESSION_COOKIE_NAME}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Strict${secureFlag ? '; Secure' : ''}`
 }
 
 export function clearSessionCookie(): string {
