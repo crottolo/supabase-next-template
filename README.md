@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Supabase + Next.js Authentication Flow
 
-## Getting Started
+Un progetto completo che implementa un flusso di autenticazione usando **Supabase** e **Next.js 15** con **App Router**.
 
-First, run the development server:
+## 🚀 Caratteristiche
 
+- ✅ **Next.js 15** con App Router e TypeScript
+- ✅ **Supabase Authentication** con SSR support  
+- ✅ **Shadcn/ui** per i componenti UI
+- ✅ **Tailwind CSS** per lo styling
+- ✅ Pagine di **Login** e **Registrazione**
+- ✅ **Dashboard privata** protetta da autenticazione
+- ✅ **Middleware** per la protezione delle route
+- ✅ Gestione completa delle **sessioni**
+
+## 📋 Prerequisiti
+
+- Node.js 18+ 
+- pnpm (raccomandato)
+- Account Supabase
+
+## 🛠️ Installazione
+
+1. **Clona il progetto** (se non l'hai già fatto):
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd supabase-next
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Installa le dipendenze**:
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configura Supabase**:
+   - Vai su [supabase.com](https://supabase.com) e crea un nuovo progetto
+   - Nella dashboard del progetto, vai su **Settings** > **API**
+   - Copia l'URL del progetto e la chiave anonima
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. **Configura le variabili d'ambiente**:
+   - Modifica il file `.env.local` inserendo i tuoi dati Supabase:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-## Learn More
+5. **Avvia il server di sviluppo**:
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. **Apri il browser** su [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📱 Utilizzo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. Homepage (`/`)
+- Pagina di benvenuto con link per login, registrazione e dashboard
+- Design responsive e moderno
 
-## Deploy on Vercel
+### 2. Registrazione (`/register`)  
+- Form per creare un nuovo account
+- Validazione email e password
+- Conferma password richiesta
+- Email di verifica automatica
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Login (`/login`)
+- Form per accedere con email e password
+- Gestione errori di autenticazione
+- Redirect automatico alla dashboard dopo il login
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Dashboard (`/dashboard`)
+- **Pagina privata** accessibile solo agli utenti autenticati
+- Mostra informazioni dell'utente loggato
+- Pulsante di logout
+- Protezione automatica tramite middleware
+
+## 🔧 Struttura del Progetto
+
+```
+src/
+├── app/
+│   ├── dashboard/          # Pagina privata
+│   │   ├── page.tsx        # Dashboard principale
+│   │   └── logout-button.tsx # Componente logout
+│   ├── login/              # Pagina di login
+│   │   └── page.tsx
+│   ├── register/           # Pagina di registrazione  
+│   │   └── page.tsx
+│   ├── globals.css         # Stili globali
+│   ├── layout.tsx          # Layout principale
+│   └── page.tsx            # Homepage
+├── components/
+│   └── ui/                 # Componenti shadcn/ui
+├── lib/
+│   ├── supabase/           # Configurazione Supabase
+│   │   ├── client.ts       # Client-side
+│   │   └── server.ts       # Server-side
+│   └── utils.ts            # Utility functions
+└── middleware.ts           # Middleware per auth
+```
+
+## 🔐 Sicurezza
+
+- **Middleware automatico**: Protegge le route private
+- **SSR Authentication**: Verifica server-side delle sessioni  
+- **Cookie sicuri**: Gestione automatica dei token
+- **Validazione lato client e server**
+
+## 🎨 Personalizzazione
+
+### Aggiungere nuovi componenti Shadcn/ui:
+```bash
+pnpm dlx shadcn@latest add [component-name]
+```
+
+### Modificare i colori del tema:
+Modifica le variabili CSS in `src/app/globals.css`
+
+## 🚀 Deploy
+
+Il progetto è pronto per il deploy su **Vercel**, **Netlify** o altre piattaforme che supportano Next.js.
+
+Assicurati di:
+1. Configurare le variabili d'ambiente sulla piattaforma di deploy
+2. Aggiungere il dominio di produzione nelle impostazioni di Supabase
+
+## 📚 Risorse
+
+- [Supabase Docs](https://supabase.com/docs)
+- [Next.js Docs](https://nextjs.org/docs)  
+- [Shadcn/ui Docs](https://ui.shadcn.com)
+- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+
+## 🤝 Contributi
+
+Sentiti libero di aprire issue o pull request per migliorare il progetto!
+
+---
+
+**Buon sviluppo! 🎉**
