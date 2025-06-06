@@ -15,7 +15,7 @@ export interface OdooPartner {
   is_company: boolean
   parent_id?: [number, string] | false
   category_id?: number[]
-  image_1920?: string
+  // image_1920 escluso per evitare headers_too_big
 }
 
 export interface OdooUser {
@@ -103,7 +103,8 @@ export class OdooAuth {
           const [partner]: any[] = await authClient.read<any>('res.partner', [user.partner_id[0]], [
             'id', 'name', 'email', 'phone', 'mobile', 'street', 'city', 'zip', 
             'country_id', 'state_id', 'website', 'is_company', 'parent_id', 
-            'category_id', 'image_1920'
+            'category_id'
+            // Escludo image_1920 per evitare headers_too_big (immagine base64 troppo grande)
           ])
 
           if (partner) {
@@ -121,8 +122,8 @@ export class OdooAuth {
               website: partner.website,
               is_company: partner.is_company,
               parent_id: partner.parent_id,
-              category_id: partner.category_id,
-              image_1920: partner.image_1920
+              category_id: partner.category_id
+              // image_1920 rimosso per evitare headers_too_big
             }
             console.log(`📋 Partner data loaded for: ${partner.name}`)
           }
