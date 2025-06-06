@@ -12,10 +12,10 @@ import { useState, useEffect, Suspense } from "react"
 export const dynamic = 'force-dynamic'
 
 function DashboardPageContent() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState("")
+  const [fetchTime, setFetchTime] = useState(0)
   const searchParams = useSearchParams()
   const urlMessage = searchParams.get('message')
 
@@ -26,9 +26,35 @@ function DashboardPageContent() {
     }
   }, [urlMessage])
 
+  // Aggiorna tempo di risposta ogni 2 secondi
+  useEffect(() => {
+    if (!session) return // Non fare polling se non siamo loggati
+
+    const interval = setInterval(async () => {
+      const startTime = Date.now()
+      try {
+        const response = await fetch('/api/auth/me', {
+          cache: 'no-cache'
+        })
+        
+        if (response.ok) {
+          const endTime = Date.now()
+          const responseTime = endTime - startTime
+          setFetchTime(responseTime)
+          console.log(`🔄 Updated response time: ${responseTime}ms`)
+        }
+      } catch (error) {
+        console.error('Response time update failed:', error)
+      }
+    }, 30000) // Ogni 2 secondi
+
+    return () => clearInterval(interval)
+  }, [session])
+
   // Fetch session data
   useEffect(() => {
     const fetchSession = async () => {
+      const startTime = Date.now()
       try {
         const response = await fetch('/api/auth/me', {
           cache: 'no-cache' // Evita cache problematiche ma non duplicati
@@ -40,7 +66,14 @@ function DashboardPageContent() {
         }
         
         const data = await response.json()
+        const endTime = Date.now()
+        const responseTime = endTime - startTime
+        
+        console.log('📊 Dashboard session data:', JSON.stringify(data, null, 2))
+        console.log(`⚡ API response time: ${responseTime}ms`)
+        
         setSession(data)
+        setFetchTime(responseTime)
       } catch (error) {
         console.error('Session fetch error:', error)
         window.location.href = '/login'
@@ -70,22 +103,23 @@ function DashboardPageContent() {
     return null // Will redirect to login
   }
   
-  // Performance tracking
-  const startTime = Date.now()
-
   const user = session.user
-  const partner = user.partner
+  const partner = session.partner
 
-  // Simulated performance data
+  // Calcolo durata sessione corretta
+  const sessionStartTime = session.sessionInfo?.iat ? session.sessionInfo.iat * 1000 : Date.now()
+  const sessionDurationMinutes = Math.floor((Date.now() - sessionStartTime) / 1000 / 60)
+  
   const mockData = {
     total_visits: Math.floor(Math.random() * 100) + 1,
     last_activity: new Date().toISOString(),
     cache_hits: Math.floor(Math.random() * 500) + 100,
     performance_score: 95.8,
-    session_duration: Math.floor((Date.now() - (session.iat || 0) * 1000) / 1000 / 60) // minutes
+    session_duration: Math.max(0, sessionDurationMinutes) // Assicura che non sia negativo
   }
 
-  const responseTime = Date.now() - startTime
+  // Usa il tempo di fetch reale
+  const responseTime = fetchTime
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 p-4">
@@ -105,31 +139,30 @@ function DashboardPageContent() {
           </Alert>
         )}
 
-        {/* Performance Stats */}
+        {/* Welcome Stats */}
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
-            <CardTitle className="text-xl text-green-800">⚡ Live Performance Stats</CardTitle>
+            <CardTitle className="text-xl text-green-800">⚡ Connessione Odoo Attiva</CardTitle>
             <CardDescription>
-              Real-time metrics from Odoo integration
+              Dati caricati correttamente dall&apos;integrazione Odoo
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-white rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-white rounded-lg border">
                 <div className="text-2xl font-bold text-green-600">{responseTime}ms</div>
-                <div className="text-sm text-gray-600">Response Time</div>
+                <div className="text-sm text-gray-600">Tempo di Risposta</div>
+                <div className="text-xs text-gray-500 mt-1">Caricamento dati dashboard</div>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-blue-600">{mockData.session_duration}min</div>
-                <div className="text-sm text-gray-600">Session Duration</div>
-              </div>
-              <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-purple-600">{mockData.performance_score}%</div>
-                <div className="text-sm text-gray-600">Performance</div>
-              </div>
-              <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-2xl font-bold text-orange-600">{user.id}</div>
-                <div className="text-sm text-gray-600">User ID</div>
+              <div className="text-center p-4 bg-white rounded-lg border">
+                <div className="text-2xl font-bold text-blue-600">
+                  {mockData.session_duration >= 60 
+                    ? `${Math.floor(mockData.session_duration / 60)}h ${mockData.session_duration % 60}min`
+                    : `${mockData.session_duration}min`
+                  }
+                </div>
+                <div className="text-sm text-gray-600">Durata Sessione</div>
+                <div className="text-xs text-gray-500 mt-1">Tempo dall&apos;ultimo login</div>
               </div>
             </div>
           </CardContent>
@@ -160,15 +193,11 @@ function DashboardPageContent() {
                     <p className="text-sm text-purple-600">Email</p>
                     <p className="font-medium">{user.email || 'N/A'}</p>
                   </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <p className="text-sm text-purple-600">User ID</p>
-                    <p className="font-medium font-mono text-xs">{user.id}</p>
-                  </div>
-                  {user.partner_id && (
+                  {user.active !== undefined && (
                     <div className="bg-purple-50 p-4 rounded-lg">
-                      <p className="text-sm text-purple-600">Partner ID</p>
-                      <p className="font-medium font-mono text-xs">
-                        {Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id}
+                      <p className="text-sm text-purple-600">Stato Account</p>
+                      <p className="font-medium">
+                        {user.active ? '✅ Attivo' : '❌ Disattivato'}
                       </p>
                     </div>
                   )}
@@ -260,106 +289,31 @@ function DashboardPageContent() {
         {/* Odoo Integration Info */}
         <Card className="border-indigo-200">
           <CardHeader>
-            <CardTitle className="text-xl">🔗 Odoo Integration Active</CardTitle>
+            <CardTitle className="text-xl">🔗 Integrazione Odoo</CardTitle>
             <CardDescription>
-              Direct connection to your Odoo instance
+              Connessione sicura alla tua istanza Odoo
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-lg">
-                <h4 className="font-semibold text-indigo-800 mb-2">🔗 Connection Features</h4>
-                <ul className="text-sm text-indigo-700 space-y-1">
-                  <li>• Direct XML-RPC connection to Odoo</li>
-                  <li>• Real-time user and partner data sync</li>
-                  <li>• Secure JWT session management</li>
-                  <li>• Automatic middleware protection</li>
-                  <li>• HttpOnly cookies for security</li>
+            <div className="p-4 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-lg">
+              <h4 className="font-semibold text-indigo-800 mb-3">✨ Funzionalità Disponibili</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ul className="text-sm text-indigo-700 space-y-2">
+                  <li>🔒 Autenticazione sicura XML-RPC</li>
+                  <li>👤 Sincronizzazione dati utente</li>
+                  <li>🏢 Informazioni partner complete</li>
                 </ul>
-              </div>
-              <div className="p-4 bg-gradient-to-r from-green-100 to-blue-100 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">📊 Performance Metrics</h4>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>• Response time: <strong>{responseTime}ms</strong></li>
-                  <li>• Data loaded: User + Partner</li>
-                  <li>• Session duration: <strong>{mockData.session_duration}min</strong></li>
-                  <li>• Cache efficiency: High</li>
-                  <li>• Status: ✅ Healthy</li>
+                <ul className="text-sm text-indigo-700 space-y-2">
+                  <li>🛡️ Protezione route automatica</li>
+                  <li>🍪 Cookie sicuri HttpOnly</li>
+                  <li>⚡ Sessioni JWT veloci</li>
                 </ul>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Session Details */}
-        <Card className="border-cyan-200">
-          <CardHeader>
-            <CardTitle>🔐 Session Information</CardTitle>
-            <CardDescription>
-              Details about your current Odoo session
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg bg-cyan-50">
-                <h4 className="font-semibold text-cyan-800 mb-2">Session Status</h4>
-                <p className="text-sm text-cyan-700 mb-2">
-                  Your session is active and authenticated with Odoo
-                </p>
-                <div className="text-xs text-cyan-600">
-                  ✅ Authenticated as: {session.username}
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg bg-green-50">
-                <h4 className="font-semibold text-green-800 mb-2">Security Features</h4>
-                <p className="text-sm text-green-700 mb-2">
-                  Your connection is secured with multiple layers
-                </p>
-                <div className="text-xs text-green-600">
-                  🔒 JWT + HttpOnly cookies + HTTPS
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg bg-yellow-50">
-                <h4 className="font-semibold text-yellow-800 mb-2">Data Sources</h4>
-                <p className="text-sm text-yellow-700 mb-2">
-                  Information from multiple Odoo models
-                </p>
-                <div className="text-xs text-yellow-600">
-                  📊 res.users + res.partner
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Navigation Links */}
-        <Card>
-          <CardHeader>
-            <CardTitle>🧭 Quick Navigation</CardTitle>
-            <CardDescription>
-              Explore different areas of the application
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button asChild variant="outline" size="lg">
-                <Link href="/">
-                  🏠 Home
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/api/auth/me">
-                  👤 User API
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/api/health">
-                  ❤️ Health Check
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

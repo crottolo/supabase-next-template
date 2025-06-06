@@ -85,7 +85,6 @@ export class OdooAuth {
       const uid = await authClient.authenticate()
       
       // Se l'autenticazione è riuscita, ottieni i dati dell'utente incluso partner_id
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [user]: any[] = await authClient.read<any>('res.users', [uid], [
         'id', 'name', 'login', 'email', 'active', 'partner_id'
       ])
@@ -101,7 +100,6 @@ export class OdooAuth {
 
       if (user.partner_id && Array.isArray(user.partner_id) && user.partner_id[0]) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const [partner]: any[] = await authClient.read<any>('res.partner', [user.partner_id[0]], [
             'id', 'name', 'email', 'phone', 'mobile', 'street', 'city', 'zip', 
             'country_id', 'state_id', 'website', 'is_company', 'parent_id', 
@@ -163,7 +161,6 @@ export class OdooAuth {
         password
       })
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [user] = await client.read<any>('res.users', [uid], [
         'name',
         'email',
@@ -182,7 +179,6 @@ export class OdooAuth {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async searchUsers(username: string, password: string, domain: any[] = []): Promise<OdooUser[]> {
     if (!this.config) {
       throw new Error('Odoo configuration not available')
@@ -195,7 +191,6 @@ export class OdooAuth {
         password
       })
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const users = await client.searchRead<any>('res.users', domain, {
         fields: ['name', 'email', 'login'],
         limit: 50

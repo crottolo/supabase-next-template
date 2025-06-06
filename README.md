@@ -1,242 +1,191 @@
-# Supabase Next.js Template
+# Odoo Next.js Template
 
-A modern, full-stack template for building web applications with **Next.js 15**, **Supabase**, and **TypeScript**. Features authentication, dashboard, and a beautiful UI built with Tailwind CSS and shadcn/ui components.
+Un template moderno e completo per costruire applicazioni web con **Next.js 15**, **Autenticazione Odoo**, e **TypeScript**. Include autenticazione, dashboard, e una bella UI costruita con Tailwind CSS e shadcn/ui.
 
-## ✨ Features
+## ✨ Caratteristiche
 
-- ⚡ **Next.js 15** with App Router and Server Components
-- 🔐 **Supabase Authentication** (Email/Password, OAuth providers)
-- 📊 **Dashboard** with protected routes
-- 🎨 **Modern UI** with Tailwind CSS and shadcn/ui
-- 🔧 **TypeScript** for type safety
-- 📱 **Responsive Design** 
-- 🛡️ **Middleware Protection** for authenticated routes
-- 🎯 **User Registration & Login** flows
-- ⚙️ **Account Setup** pages
-- 🌙 **Dark Mode Support** (via shadcn/ui)
+- ⚡ **Next.js 15** con App Router e Server Components
+- 🔐 **Autenticazione Odoo** tramite XML-RPC
+- 📊 **Dashboard** con route protette e dati partner completi
+- 🎨 **UI Moderna** con Tailwind CSS e shadcn/ui
+- 🔧 **TypeScript** per type safety
+- 📱 **Design Responsivo** 
+- 🛡️ **Protezione Middleware** per route autenticate
+- 🎯 **Registrazione & Login** automatico
+- ⚙️ **Verifica Signup** dinamica background
+- 🌐 **Sessioni JWT** sicure compatibili Edge Runtime
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Prerequisiti
 
 - Node.js 18+ 
-- pnpm (recommended) or npm
-- A Supabase account
+- pnpm (consigliato) o npm
+- Un'istanza Odoo accessibile
+- **Modulo Custom** `create_user_api` installato su Odoo (per registrazione)
 
-### 1. Clone and Install
+### 1. Clone e Installa
 
 ```bash
-git clone https://github.com/crottolo/supabase-next-template.git
-cd supabase-next-template
+git clone https://github.com/crottolo/odoo-next-template.git
+cd odoo-next-template
 pnpm install
 ```
 
-### 2. Set up Supabase
+### 2. Setup Odoo
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to **Settings** → **API** 
-3. Copy your **Project URL** and **anon public key**
+1. Assicurati che la tua istanza Odoo sia accessibile
+2. Installa il modulo custom `create_user_api` per la registrazione
+3. Configura whitelist IP nel modulo (opzionale)
 
-### 3. Environment Variables
+### 3. Variabili Ambiente
 
-Create a `.env.local` file in the root directory:
+Crea un file `.env.local` nella directory root:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+ODOO_URL=http://localhost:8069
+ODOO_DATABASE=your_db_name
+JWT_SECRET=your-super-secret-jwt-key-here
 ```
 
-### 4. Set up Database (Optional)
-
-If you need custom tables, go to your Supabase dashboard and create them via the SQL editor or Table editor.
-
-### 5. Run the Development Server
+### 4. Avvia il Server di Sviluppo
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application.
+Apri [http://localhost:3000](http://localhost:3000) per vedere la tua applicazione.
 
-## 📁 Project Structure
+## 📁 Struttura Progetto
 
 ```
 src/
 ├── app/
-│   ├── dashboard/          # Protected dashboard pages
-│   ├── login/             # Login page
-│   ├── register/          # Registration page
-│   ├── setup/             # Account setup flow
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
+│   ├── api/auth/           # API routes autenticazione
+│   │   ├── login/         # Endpoint login Odoo
+│   │   ├── logout/        # Endpoint logout
+│   │   ├── me/            # Dati utente corrente
+│   │   ├── register/      # Registrazione nuovo utente
+│   │   ├── signup-check/  # Verifica disponibilità signup
+│   │   └── check-user/    # Verifica utente esistente
+│   ├── dashboard/         # Dashboard protetta con dati partner
+│   ├── login/            # Pagina login
+│   ├── register/         # Pagina registrazione
+│   ├── setup/            # Flow setup account
+│   ├── layout.tsx        # Layout root
+│   └── page.tsx          # Home page
 ├── components/
-│   └── ui/                # shadcn/ui components
+│   └── ui/               # Componenti shadcn/ui
 ├── lib/
-│   └── supabase/          # Supabase client configuration
-├── middleware.ts          # Route protection middleware
-└── nixpacks.toml          # Coolify/Nixpacks configuration
+│   ├── odoo/            # Client e sessioni Odoo
+│   │   ├── client.ts    # Connessione XML-RPC dinamica
+│   │   └── session.ts   # Gestione JWT sessioni
+│   └── hooks/           # Hook React personalizzati
+│       └── useSignupAvailability.ts  # Verifica signup background
+├── middleware.ts         # Protezione route con JWT
+└── .env.example         # Template variabili ambiente
 ```
 
-## ⚙️ Environment Variables Template
+## 🔐 Flusso Autenticazione
 
-The `.env.example` file provides a template with all necessary environment variables:
+1. **Login**: Credenziali Odoo → JWT → Dashboard
+2. **Registrazione**: Form → Modulo custom Odoo → Auto-login
+3. **Route Protette**: Middleware JWT verifica automatica
+4. **Dati Partner**: res.users + res.partner combinati
+5. **Verifica Signup**: Background check ogni 5 minuti
+6. **Sessioni**: JWT sicuri HttpOnly cookies
 
-- **Clear Documentation**: Each variable has instructions on where to find the values
-- **Supabase Integration**: Step-by-step guide to get Supabase credentials  
-- **Production Ready**: All variables optimized for production deployment
-- **Coolify Magic Variables**: Predefined variables that Coolify generates automatically
+## 🛠️ Architettura Tecnica
 
-### 🔄 Using Shared Variables (Advanced)
+### Connessione Odoo
+- **XML-RPC**: Autenticazione diretta tramite `odoo-xmlrpc-ts`
+- **Dinamica**: URL/Database configurabili via ambiente
+- **Sessioni**: JWT con `jose` (Edge Runtime compatible)
 
-For teams managing multiple projects, Coolify's Shared Variables feature allows you to:
+### Registrazione Custom
+- **Modulo Odoo**: `/api/create_user` senza CSRF
+- **Whitelist IP**: Sicurezza configurabile
+- **Utenti Portal**: Solo registrazioni esterne
+- **Auto-login**: Dopo registrazione diretta a dashboard
 
-1. **Team Level** - Set variables once, use across all projects:
-   ```bash
-   # In Coolify: Team Settings
-   SUPABASE_URL = https://company-project.supabase.co
-   
-   # In applications, use:
-   NEXT_PUBLIC_SUPABASE_URL = {{team.SUPABASE_URL}}
-   ```
+### UI Condizionale
+- **Signup Check**: Verifica automatica `/web/login` per presenza link signup
+- **Loading States**: Overlay durante processi
+- **Error Handling**: Gestione robusta errori e timeout
 
-2. **Project Level** - Share variables within a project:
-   ```bash
-   # In Coolify: Project Settings  
-   DATABASE_URL = {{team.SUPABASE_URL}}
-   
-   # In applications, use:
-   NEXT_PUBLIC_SUPABASE_URL = {{project.DATABASE_URL}}
-   ```
+## 📦 Tecnologie Utilizzate
 
-3. **Environment Level** - Different values per environment:
-   ```bash
-   # In Coolify: Environment Settings
-   # Production: DOMAIN = https://myapp.com
-   # Staging: DOMAIN = https://staging.myapp.com
-   
-   NEXTAUTH_URL = {{environment.DOMAIN}}
-   ```
-
-## 🔐 Authentication Flow
-
-1. **Registration**: Users can sign up with email/password
-2. **Login**: Existing users can log in
-3. **Protected Routes**: Dashboard and setup pages require authentication
-4. **Middleware**: Automatic redirection for unauthenticated users
-5. **Session Management**: Persistent login state across page refreshes
-
-## 🛠️ Customization
-
-### Adding New UI Components
-
-This template uses [shadcn/ui](https://ui.shadcn.com/). Add new components:
-
-```bash
-pnpm dlx shadcn@latest add button
-```
-
-### Supabase Configuration
-
-The Supabase client is configured in `src/lib/supabase/`. You can extend it with:
-
-- Custom queries
-- Real-time subscriptions  
-- File storage
-- Edge functions
-
-### Styling
-
-- **Tailwind CSS**: Utility-first CSS framework
-- **CSS Variables**: Defined in `globals.css` for theme customization
-- **Dark Mode**: Automatic support via shadcn/ui theme provider
-
-## 📦 Built With
-
-- [Next.js 15](https://nextjs.org/) - React framework
-- [Supabase](https://supabase.com/) - Backend as a Service
+- [Next.js 15](https://nextjs.org/) - Framework React
+- [odoo-xmlrpc-ts](https://www.npmjs.com/package/odoo-xmlrpc-ts) - Client XML-RPC per Odoo
+- [jose](https://github.com/panva/jose) - JWT Edge Runtime compatible
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
+- [shadcn/ui](https://ui.shadcn.com/) - Componenti UI
 - [Lucide React](https://lucide.dev/) - Icons
 
-## 🚀 Deploy with Coolify
+## ⚙️ Configurazione Odoo Richiesta
 
-### Quick Deploy Guide
+### Modulo `create_user_api`
 
-1. **Setup Coolify** (if you haven't already):
-   ```bash
-   curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
-   ```
+Il progetto richiede un modulo custom Odoo con endpoint:
+```python
+@http.route('/api/create_user', type='json', auth='none', methods=['POST'], csrf=False)
+def create_user_api(self, **kwargs):
+    # Logica creazione utente
+    # Whitelist IP (opzionale)
+    # Solo utenti PORTAL
+    pass
+```
 
-2. **Create New Application** in Coolify Dashboard:
-   - Click **"+ New Resource"** → **"Application"**
-   - Choose **"Public Repository"** or **"GitHub App"** (for private repos)
-   - Paste repository URL: `https://github.com/crottolo/supabase-next-template`
+### Permessi Minimi
+- Lettura `res.users` e `res.partner`
+- Scrittura `res.users` (per registrazione)
+- Accesso XML-RPC abilitato
 
-3. **Configure Build Settings**:
-   - **Build Pack**: Nixpacks (auto-detected)
-   - **Base Directory**: `/` (root)
-   - **Port**: `3000`
-   - **Branch**: `main`
+## 🚀 Deploy
 
-4. **Environment Variables** (Copy-Paste Ready!):
-   
-   Open the **Environment Variables** tab and paste:
-   
-   ```bash
-   # For projects with Shared Variables (recommended)
-   NEXT_PUBLIC_SUPABASE_URL={{project.NEXT_PUBLIC_SUPABASE_URL}}
-   NEXT_PUBLIC_SUPABASE_ANON_KEY={{project.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
-   NODE_ENV={{project.NODE_ENV}}
-   PORT=3000
-   NEXT_TELEMETRY_DISABLED=1
-   ```
-   
-   **Alternative** (direct values):
-   ```bash
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   NODE_ENV=production
-   PORT=3000
-   NEXT_TELEMETRY_DISABLED=1
-   ```
+### Variabili Produzione
+```env
+ODOO_URL=https://your-odoo-instance.com
+ODOO_DATABASE=production_db
+JWT_SECRET=your-production-secret-256-bit
+NODE_ENV=production
+```
 
-5. **Deploy**: Click **"Deploy"** and your app will be live in minutes! 🎉
+### Build di Produzione
+```bash
+pnpm build  # Genera build ottimizzata
+pnpm start  # Avvia server produzione
+```
 
-### 🔄 Using Shared Variables (Pro Tip)
+### Middleware Edge Runtime
+Il middleware è compatibile con Edge Runtime per performance massime.
 
-For teams or multiple projects, set up **Shared Variables** once:
+## 🔧 Sviluppo
 
-1. **Project Level**: Go to Project Settings → Variables
-2. **Add these variables**:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` 
-   - `NODE_ENV`
-3. **Reference with**: `{{project.VARIABLE_NAME}}`
+### Aggiungere Componenti UI
+```bash
+pnpm dlx shadcn@latest add component-name
+```
 
-Now every new app in this project uses the same configuration automatically!
+### Estendere API Odoo
+Modifica `src/lib/odoo/client.ts` per aggiungere nuovi metodi XML-RPC.
 
-### 🌐 Get Your Supabase Credentials
+### Testing
+```bash
+pnpm lint    # ESLint check
+pnpm build   # Verifica build produzione
+```
 
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project
-3. Navigate to **Settings** → **API**
-4. Copy **Project URL** and **anon public key**
+## 🐛 Troubleshooting
 
-### ✨ Why Coolify?
+### Errori Comuni
+- **CSRF Failed**: Assicurati che il modulo `create_user_api` abbia `csrf=False`
+- **Cookie Too Big**: Rimosso campo `image_1920` per evitare JWT grandi
+- **Edge Runtime**: Usa `jose` invece di `jsonwebtoken`
 
-- **Self-hosted**: Full control of your infrastructure
-- **Cost-effective**: No vendor lock-in, use your own VPS
-- **Easy scaling**: Add more servers as you grow
-- **Privacy**: Your data stays on your servers
-- **Open source**: Transparent and community-driven
-
-## 📝 Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key | ✅ |
+### Debug
+API include logging per troubleshooting login/registrazione.
 
 ## 🤝 Contributing
 
