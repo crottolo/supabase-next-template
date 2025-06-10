@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import LogoutButton from "@/components/ui/logout-button"
 import { getSessionFromCookie } from "@/lib/odoo/session"
 import { cookies } from "next/headers"
+import FlowiseChat from "@/components/FloweiseChat"
 
 // Force dynamic rendering to check authentication
 export const dynamic = 'force-dynamic'
@@ -106,6 +107,12 @@ export default async function Home() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* BubbleChat come componente client */}
+      <FlowiseChat
+        chatflowid="3795676a-b660-4501-84cd-d93aff361609"
+        apiHost="https://flowise.fl1.it"
+      />
     </div>
   )
 }
